@@ -1,5 +1,4 @@
-from SingleAgentTests.Types import Action, ActionSet
-from Types import State
+from SingleAgentTests.Types import State, Action, ActionSet
 from abc import ABC
 
 class Environment(ABC):

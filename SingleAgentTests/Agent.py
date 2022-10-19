@@ -4,9 +4,6 @@ from abc import ABC
 
 class Agent(ABC):
 
-    def __init__(self) -> None:
-        pass
-
     def step(self, observableState: State, possibleActions: ActionSet, reward: float) -> None:
         pass
 

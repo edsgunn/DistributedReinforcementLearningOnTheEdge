@@ -1,14 +1,14 @@
 import random
 from typing import List, Tuple
-from Environment import Environment
-import Enum
+from SingleAgentTests.Environment import Environment
+from enum import Enum
 from SingleAgentTests.Types import Action, ActionSet, State
 
 class Suit(Enum):
-    Diamonds = 1
-    Clubs = 2
-    Hearts = 3
-    Spades = 4
+    Diamonds = 0
+    Clubs = 1
+    Hearts = 2
+    Spades = 3
 
 class CardNumber(Enum):
     Ace = 1
@@ -21,9 +21,9 @@ class CardNumber(Enum):
     Eight = 8
     Nine = 9
     Ten = 10
-    Jack = 11
-    Queen = 12
-    King = 13
+    Jack = 10
+    Queen = 10
+    King = 10
 
 class Card:
     
@@ -61,8 +61,9 @@ class BlackJack(Environment):
         self.dealersHand: List[Card] = [self.deck.draw() for _ in range(2)]
         self.possibleActions: ActionSet = [0,1]
         self.gameOver = False
+        self.suitTranslation = ["D", "C", "H", "S"]
 
-    def handToState(hand: List[Card]) -> Tuple[int, int]:
+    def handToState(self, hand: List[Card]) -> Tuple[int, int]:
         cardTotal = 0
         numberOfAces = 0
         for card in hand:
@@ -105,17 +106,33 @@ class BlackJack(Environment):
         if self.gameOver:
             dealerTotal = self.handToState(self.dealersHand)[0]
             playerTotal = self.handToState(self.playersHand)[0]
+            print(f"Game Over\nPlayer: {playerTotal}, Dealer: {dealerTotal}")
             if playerTotal > 21:
                 if dealerTotal > 21:
+                    print("Player and dealer Bust")
                     return 0
                 else:
+                    print("Player bust")
                     return -1
             else:
                 if dealerTotal > 21 or playerTotal > dealerTotal:
+                    print("Player wins")
                     return 1
                 elif playerTotal == dealerTotal:
+                    print("Player and dealer equal")
                     return 0
                 else:
+                    print("Player loses")
                     return -1
         return 0
+
+    def printHand(self, hand: List[Card]):
+        text = ""
+        for card in hand:
+            text += str(card.getNumber().value)
+            text += self.suitTranslation[card.getSuit().value]
+            text += "\n"
+
+        print(text)
+
                 
