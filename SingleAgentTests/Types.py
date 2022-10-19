@@ -1,7 +1,7 @@
-from typing import List
+from typing import List, Tuple
 
 Action = int
 ActionSet = List[Action]
 
-State = int
-StateSet = List[Action]
+State = Tuple[int, ...]
+StateSet = List[State]
