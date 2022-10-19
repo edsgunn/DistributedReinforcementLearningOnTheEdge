@@ -1,9 +1,20 @@
+from SingleAgentTests.Types import Action, ActionSet
 from Types import State
+from abc import ABC
 
-class Environment:
+class Environment(ABC):
 
     def __init__(self) -> None:
-        self.currentState = self.getInitialState()
+        pass
 
-    def getInitialState() -> State:
-        return 1
+    def getObservableState(self) -> State:
+        pass
+
+    def getPossibleActions(self) -> ActionSet:
+        pass
+
+    def step(self, action: Action) -> bool:
+        pass
+
+    def getReward(self) -> float:
+        pass

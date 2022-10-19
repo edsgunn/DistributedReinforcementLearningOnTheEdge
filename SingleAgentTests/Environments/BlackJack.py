@@ -2,6 +2,7 @@ import random
 from typing import List, Tuple
 from Environment import Environment
 import Enum
+from SingleAgentTests.Types import Action, ActionSet, State
 
 class Suit(Enum):
     Diamonds = 1
@@ -58,6 +59,8 @@ class BlackJack(Environment):
         self.deck = DeckOfCards()
         self.playersHand: List[Card] = [self.deck.draw() for _ in range(2)]
         self.dealersHand: List[Card] = [self.deck.draw() for _ in range(2)]
+        self.possibleActions: ActionSet = [0,1]
+        self.gameOver = False
 
     def handToState(hand: List[Card]) -> Tuple[int, int]:
         cardTotal = 0
@@ -77,7 +80,42 @@ class BlackJack(Environment):
 
         return (cardTotal, numberOfAces)
 
-    def getObservableState(self):
+    def getObservableState(self) -> State:
         return self.handToState(self.playersHand)
 
+    def getPossibleActions(self) -> ActionSet:
+        return self.possibleActions
+
+    def step(self, action: Action) -> bool:
+        if action == 0:
+            self.gameOver = True
+        elif action == 1:
+            self.playersHand.append(self.deck.draw())
+            if self.handToState(self.playersHand)[0] > 21:
+                self.gameOver = True
+
+        if self.gameOver:
+            while self.handToState(self.dealersHand)[0] < 17:
+                self.dealersHand.append(self.deck.draw())
+            return False
         
+        return True
+
+    def getReward(self) -> float:
+        if self.gameOver:
+            dealerTotal = self.handToState(self.dealersHand)[0]
+            playerTotal = self.handToState(self.playersHand)[0]
+            if playerTotal > 21:
+                if dealerTotal > 21:
+                    return 0
+                else:
+                    return -1
+            else:
+                if dealerTotal > 21 or playerTotal > dealerTotal:
+                    return 1
+                elif playerTotal == dealerTotal:
+                    return 0
+                else:
+                    return -1
+        return 0
+                
