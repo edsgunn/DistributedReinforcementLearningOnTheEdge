@@ -87,6 +87,9 @@ class BlackJack(Environment):
     def getPossibleActions(self) -> ActionSet:
         return self.possibleActions
 
+    def getAllPossibleStateActions(self) -> List[Tuple(State, Action)]:
+        return [((cardTotal, aces), action) for cardTotal in range(30) for aces in range(5) for action in range(2)] 
+
     def step(self, action: Action) -> bool:
         if action == 0:
             self.gameOver = True

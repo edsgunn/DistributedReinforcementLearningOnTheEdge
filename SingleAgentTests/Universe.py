@@ -17,10 +17,9 @@ class Universe(ABC):
         observableState = self.environment.getObservableState()
         possibleActions = self.environment.getPossibleActions()
         reward = self.environment.getReward()
+        self.agent.step(observableState, possibleActions, reward)
         
-        if self.running:
-            self.agent.step(observableState, possibleActions, reward)
-            self.time += 1
+        self.time += 1
 
     def start(self):
         observableState = self.environment.getObservableState()
