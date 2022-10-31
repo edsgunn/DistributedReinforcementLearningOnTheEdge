@@ -1,3 +1,4 @@
+from typing import Any, List, Optional, Tuple, Type
 from SingleAgentTests.Environment import Environment
 from SingleAgentTests.Agent import Agent
 from abc import ABC
@@ -5,10 +6,9 @@ from abc import ABC
 class Universe(ABC):
 
     def __init__(self, environment: Environment, agent: Agent) -> None:
-        self.time: int = 0
         self.environment = environment
         self.agent = agent
-        self.running = True
+        self.history = []
 
     def step(self) -> None:
         print(f"Step: {self.time}\n---------------------------------")
@@ -19,12 +19,27 @@ class Universe(ABC):
         reward = self.environment.getReward()
         self.agent.step(observableState, possibleActions, reward)
         
+        self.history.append((self.history[-1][2], action, observableState, reward, None if self.running else self.time))
         self.time += 1
 
     def start(self):
+        self.running = True
+        self.time: int = 0
         observableState = self.environment.getObservableState()
         possibleActions = self.environment.getPossibleActions()
+        self.history.append((None, None, observableState, None, None))
         print(f"Observable state: {observableState}")
         print(f"Possible actions: {possibleActions}")
         while self.running:
             self.step()
+
+    def trainMany(self, iterations: int, environment: Type[Environment], *args: Any):
+        for _ in range(iterations):
+            self.agent.printV2D()
+            self.environment = environment(*args)
+            self.start()
+
+    def getHistory(self) -> List[Tuple[Optional[int],...]]:
+        return self.history
+        
+

@@ -18,7 +18,7 @@ class SimpleGrid(Environment):
         return self.possibleActions
 
     def getAllPossibleStateActions(self) -> List[Tuple[State, Action]]:
-        return [((x, y), self.possibleActions) for x in len(self.grid) for y in len(self.grid[0])] 
+        return [((x, y), action) for action in self.possibleActions for x in range(len(self.grid)) for y in range(len(self.grid[0]))] 
 
     def step(self, action: Action) -> bool:
         if action == 0:
