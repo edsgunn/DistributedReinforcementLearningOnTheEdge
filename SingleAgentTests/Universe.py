@@ -36,8 +36,9 @@ class Universe(ABC):
     def trainMany(self, iterations: int, environment: Type[Environment], *args: Any):
         for _ in range(iterations):
             self.agent.printV2D()
-            self.agent.nextEpisode()
             self.environment = environment(*args)
+            state = self.environment.getObservableState()
+            self.agent.nextEpisode(state)
             self.start()
 
     def getHistory(self) -> List[Tuple[Optional[int],...]]:
