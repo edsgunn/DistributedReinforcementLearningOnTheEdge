@@ -36,6 +36,7 @@ class Universe(ABC):
     def trainMany(self, iterations: int, environment: Type[Environment], *args: Any):
         for _ in range(iterations):
             self.agent.printV2D()
+            self.agent.nextEpisode()
             self.environment = environment(*args)
             self.start()
 

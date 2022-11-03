@@ -5,9 +5,12 @@ import numpy as np
 
 class WindyGrid(Environment):
 
-    def __init__(self, width: int, height: int, terminal: Tuple[int, int]) -> None:
+    def __init__(self) -> None:
+        width = 10
+        height = 10
+        self.windMap = [0,0,0,1,1,1,2,2,1,0]
         self.grid = [[0 for _ in range(height)] for _ in range(width)]
-        self.terminal = terminal
+        self.terminal = (7,3)
         self.agentPosition = (0,0)
         self.possibleActions = [0,1,2,3,4] #[L,R,U,D,S]
 
@@ -21,14 +24,8 @@ class WindyGrid(Environment):
         return [((x, y), action) for action in self.possibleActions for x in range(len(self.grid)) for y in range(len(self.grid[0]))] 
 
     def step(self, action: Action) -> bool:
-        if self.agentPosition[0] > self.terminal[0]:
-            rightWind = 1
-        else:
-            rightWind = 0
-        if self.agentPosition[1] > self.terminal[1]:
-            downWind = -2
-        else:
-            downWind = -1
+        rightWind = 0
+        downWind = self.windMap[self.agentPosition[0]]
         if action == 0:
             self.agentPosition = (min(len(self.grid)-1, max(0, self.agentPosition[0]-1+rightWind)), min(len(self.grid)-1, max(0, self.agentPosition[1] + downWind)))
         elif action == 1:
