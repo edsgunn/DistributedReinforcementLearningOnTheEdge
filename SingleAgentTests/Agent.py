@@ -70,5 +70,13 @@ class OnlineAgent(Agent):
 
 class OfflineAgent(Agent):
 
-    def __init__(self):
+    def __init__(self, trainingInterval: int) -> None:
+        self.trainingInterval = trainingInterval
+        self.episodeNumber = 1
+
+    def nextEpisode(self) -> None:
+        if self.episodeNumber % self.trainingInterval == 0:
+            self.train()
+
+    def train(self) -> None:
         pass
