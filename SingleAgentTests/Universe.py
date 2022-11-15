@@ -32,6 +32,8 @@ class Universe(ABC):
         print(f"Possible actions: {possibleActions}")
         while self.running:
             self.step()
+            if self.time > 10000:
+                break
 
     def trainMany(self, iterations: int, environment: Type[Environment], *args: Any):
         for _ in range(iterations):

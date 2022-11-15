@@ -4,8 +4,10 @@ from abc import ABC
 
 class Agent(ABC):
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self):
+        self.currentAction = None
+        self.lastAction = None
+        self.generateNextAction()
 
     def step(self, observableState: State, possibleActions: ActionSet, reward: float) -> None:
         pass
@@ -14,35 +16,10 @@ class Agent(ABC):
         pass
     
     def getAction(self) -> Action:
-        pass
+        return self.currentAction
 
     def generateNextAction(self) -> None:
         pass
-
-
-class OnlineAgent(Agent):
-
-    def __init__(self):
-        self.currentAction = None
-        self.lastAction = None
-        self.generateNextAction()
-
-    def step(self, observableState: State, possibleActions: ActionSet, reward: float):
-        print(f"State: {observableState}")
-        print(f"Possible actions: {possibleActions}")
-        print(f"Reward: {reward}")
-        self.lastState = self.currentState
-        self.currentState = observableState
-        self.generateNextAction()
-
-    def getAction(self) -> Action:
-        return self.currentAction
-
-    def nextEpisode(self, state) -> None:
-        self.lastState = None
-        self.lastAction = None
-        self.currentState = state
-        self.generateNextAction()
 
     def getV2D(self):
         v = []
@@ -68,13 +45,38 @@ class OnlineAgent(Agent):
             text += "\n"
         print(text)
 
+    def nextEpisode(self, state) -> None:
+        self.lastState = None
+        self.lastAction = None
+        self.currentState = state
+        self.generateNextAction()
+
+
+class OnlineAgent(Agent):
+
+    def step(self, observableState: State, possibleActions: ActionSet, reward: float):
+        print(f"State: {observableState}")
+        print(f"Possible actions: {possibleActions}")
+        print(f"Reward: {reward}")
+        self.lastState = self.currentState
+        self.currentState = observableState
+        self.generateNextAction()
+
+
+    
+
+
 class OfflineAgent(Agent):
 
     def __init__(self, trainingInterval: int) -> None:
+        super().__init__()
         self.trainingInterval = trainingInterval
         self.episodeNumber = 1
 
-    def nextEpisode(self) -> None:
+    def nextEpisode(self, state) -> None:
+        super().nextEpisode(state)
+        self.episodeNumber += 1
+        print(f"Episode number: {self.episodeNumber}, Training Interval: {self.trainingInterval}")
         if self.episodeNumber % self.trainingInterval == 0:
             self.train()
 
