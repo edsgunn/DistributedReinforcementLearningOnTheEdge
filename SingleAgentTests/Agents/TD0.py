@@ -1,7 +1,7 @@
 import random
 from typing import List, Tuple
 from SingleAgentTests.Agent import OnlineAgent
-from SingleAgentTests.Types import State, Action, ActionSet
+from Common.Types import State, Action, ActionSet
 
 
 class TD0(OnlineAgent):

@@ -1,13 +1,17 @@
-from argparse import Action
 from Common.Types import ActionSet, State
-from abc import ABC
-
-class Agent(ABC):
+from DistributedTests.CentralLearner import CentralLearner
+from Common.Types import Action
+class Agent:
 
     def __init__(self):
         self.currentAction = None
         self.lastAction = None
+        self.centralLearner = None
         self.generateNextAction()
+
+    def addCentralLearner(self, centralLearner: CentralLearner):
+        self.centralLearner = centralLearner
+        self.centralLearner.addAgent(self)
 
     def step(self, observableState: State, possibleActions: ActionSet, reward: float) -> None:
         pass

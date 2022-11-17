@@ -2,7 +2,7 @@ import random
 from typing import List, Tuple
 from SingleAgentTests.Environment import Environment
 from enum import Enum
-from SingleAgentTests.Types import Action, ActionSet, State
+from Common.Types import Action, ActionSet, State
 
 class Suit(Enum):
     Diamonds = 0

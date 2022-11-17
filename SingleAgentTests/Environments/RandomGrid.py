@@ -1,6 +1,6 @@
 from typing import List, Tuple
 from SingleAgentTests.Environment import Environment
-from SingleAgentTests.Types import Action, ActionSet, State
+from Common.Types import Action, ActionSet, State
 import random
 
 class RandomGrid(Environment):

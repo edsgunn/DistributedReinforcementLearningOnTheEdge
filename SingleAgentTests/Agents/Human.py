@@ -1,6 +1,6 @@
 from typing import cast
 from SingleAgentTests.Agent import Agent
-from SingleAgentTests.Types import State, Action, ActionSet
+from Common.Types import State, Action, ActionSet
 
 
 class Human(Agent):

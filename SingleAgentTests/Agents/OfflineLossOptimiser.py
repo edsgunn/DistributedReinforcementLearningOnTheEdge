@@ -2,7 +2,7 @@ import random
 import numpy as np
 from typing import List, Tuple
 from SingleAgentTests.Agent import OfflineAgent
-from SingleAgentTests.Types import State, Action, ActionSet
+from Common.Types import State, Action, ActionSet
 
 
 class OfflineLossOptimiser(OfflineAgent):

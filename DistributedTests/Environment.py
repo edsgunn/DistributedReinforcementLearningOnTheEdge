@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from Common.Types import State, Action, ActionSet
+from SingleAgentTests.Types import State, Action, ActionSet
 from abc import ABC
 
 class Environment(ABC):
