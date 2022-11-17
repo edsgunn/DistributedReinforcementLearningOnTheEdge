@@ -7,14 +7,17 @@ from SingleAgentTests.Types import State, Action, ActionSet
 
 class OfflineLossOptimiser(OfflineAgent):
 
-    def __init__(self, trainingInterval: int, epsilon: float, gamma: float, initailState: State, possibleActions: ActionSet, possibleStateActions: List[Tuple[State, Action]]):
+    def __init__(self, trainingInterval: int, epsilon: float, epsilon2: float, gamma: float, initailState: State, possibleActions: ActionSet, possibleStateActions: List[Tuple[State, Action]]):
         self.episodeNumber = 1
         self.epsilon = epsilon
+        self.epsilon2 = epsilon2
         self.gamma = gamma
         self.possibleActions = possibleActions
         self.currentState = initailState
         self.possibleStateActions = possibleStateActions
         self.q = { stateAction: random.random() for stateAction in self.possibleStateActions }
+        self.indexStateActions = self.q.keys()
+        self.stateActionIndicies = dict(zip(self.indexStateActions,[i for i in range(len(self.possibleStateActions))]))
         self.oldq = self.q.copy()
         self.d = []
         self.numState0s = max([stateAction[0][0] for stateAction in self.possibleStateActions])
@@ -48,42 +51,35 @@ class OfflineLossOptimiser(OfflineAgent):
 
 
     def getData(self) -> List[Tuple[State,Action,int,State,Action]]:
-        return self.d[54:90]
+        return random.choices(self.d, k = 10)
     
     def indeciseStateAction(self, stateAction):
-        
-        state = stateAction[0]
-        action = stateAction[1]
-        return state[0]*self.numState1s*self.numActions + state[1]*self.numActions + action
+        return self.stateActionIndicies[stateAction]
 
     def indextToStateAction(self, index):
-        a = index % self.numActions
-        s1 = (index-a)/self.numActions % self.numState1s
-        s0 = ((index-a)/self.numActions - s1)/self.numState1s
-        return ((s0,s1),a)
+        return self.indexStateActions[index]
 
     def train(self) -> None:
         data = self.getData()
-        numDataPoints = len(data)
         numStateActions = len(self.possibleStateActions)
-        Em = np.zeros((numDataPoints,numStateActions))
-        Emprime = np.zeros((numDataPoints,numStateActions))
-        R = np.zeros(numDataPoints)
-        for i, d in enumerate(data):
+        A = self.epsilon2*np.eye(numStateActions)
+        b = np.zeros((numStateActions,1))
+        for d in data:
             j = self.indeciseStateAction(d[0:2])
             jprime = self.indeciseStateAction(d[3:])
-            Em[i, j] += 1
-            Emprime[i, jprime] += 1
-            R[i]+= d[2]
-        E = Em-self.gamma*Emprime
-        A = 2*np.matmul(E,np.transpose(E))
-        A = A + 0.01*np.eye(np.size(A,0))
+            em = np.zeros((numStateActions,1))
+            emprime = np.zeros((numStateActions,1))
+            em[j, 0] = 1
+            emprime[jprime, 0] = 1
+            A += np.matmul(em,np.transpose(em-self.gamma*emprime))
+            b += d[2]*em
         np.set_printoptions(threshold=np.inf)
         print(f"A matrix: {A} \n Size: {np.shape(A)}")
         self.oldq = self.q.copy()
-        qvec = np.linalg.solve(A,R)
-        for index, value in enumerate(qvec):
-            self.q[self.indextToStateAction(index)] = value
+        qvec = np.linalg.solve(A,b)
+        print(f"Qvec = {qvec}")
+        self.q = dict(zip(self.indexStateActions, qvec.reshape(numStateActions)))
+        print(f"Qaftervec = {self.q}")
         self.epsilon /= 1.5
 
     def calculateLoss(self, d) -> float:
