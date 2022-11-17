@@ -15,7 +15,7 @@ class OfflineLossOptimiser(OfflineAgent):
         self.possibleActions = possibleActions
         self.currentState = initailState
         self.possibleStateActions = possibleStateActions
-        self.q = { stateAction: random.random() for stateAction in self.possibleStateActions }
+        self.q = { stateAction: 0 for stateAction in self.possibleStateActions }
         self.indexStateActions = self.q.keys()
         self.stateActionIndicies = dict(zip(self.indexStateActions,[i for i in range(len(self.possibleStateActions))]))
         self.oldq = self.q.copy()
@@ -27,9 +27,7 @@ class OfflineLossOptimiser(OfflineAgent):
 
 
     def step(self, observableState: State, possibleActions: ActionSet, reward: float) -> None:
-        print(f"State: {observableState}")
-        print(f"Possible actions: {possibleActions}")
-        print(f"Reward: {reward}")
+        # print(f"State: {observableState}")
         self.lastState = self.currentState
         self.currentState = observableState
         self.generateNextAction()
@@ -44,14 +42,17 @@ class OfflineLossOptimiser(OfflineAgent):
         weights = [self.epsilon/m if i != bestAction else self.epsilon/m + 1 - self.epsilon for i in range(m)]
         self.lastAction = self.currentAction
         self.currentAction = random.choices(self.possibleActions, weights=weights)[0]
-        print(f"Action values: {actionValues}, Best action: {bestAction}, Actual action: {self.currentAction}")
+        # print(f"Best Action: {bestAction}, Actual action: {self.currentAction}")
 
     def nextEpisode(self, state: State) -> None:
         super().nextEpisode(state)
 
 
     def getData(self) -> List[Tuple[State,Action,int,State,Action]]:
-        return random.choices(self.d, k = 10)
+        numDataPoints = 400000
+        # if len(self.d) > numDataPoints:
+        #     return random.choices(self.d, k = numDataPoints)
+        return self.d[-numDataPoints:]
     
     def indeciseStateAction(self, stateAction):
         return self.stateActionIndicies[stateAction]
@@ -74,13 +75,11 @@ class OfflineLossOptimiser(OfflineAgent):
             A += np.matmul(em,np.transpose(em-self.gamma*emprime))
             b += d[2]*em
         np.set_printoptions(threshold=np.inf)
-        print(f"A matrix: {A} \n Size: {np.shape(A)}")
         self.oldq = self.q.copy()
         qvec = np.linalg.solve(A,b)
-        print(f"Qvec = {qvec}")
         self.q = dict(zip(self.indexStateActions, qvec.reshape(numStateActions)))
-        print(f"Qaftervec = {self.q}")
-        self.epsilon /= 1.5
+        # print(f"Qaftervec = {self.q}")
+        # self.epsilon /= 1.05
 
     def calculateLoss(self, d) -> float:
         loss = 0

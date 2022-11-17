@@ -11,7 +11,7 @@ class Universe(ABC):
         self.history = []
 
     def step(self) -> None:
-        print(f"Step: {self.time}\n---------------------------------")
+        # print(f"Step: {self.time}\n---------------------------------")
         action = self.agent.getAction()
         self.running = self.environment.step(action)
         observableState = self.environment.getObservableState()
@@ -28,11 +28,11 @@ class Universe(ABC):
         observableState = self.environment.getObservableState()
         possibleActions = self.environment.getPossibleActions()
         self.history.append((None, None, observableState, None, None))
-        print(f"Observable state: {observableState}")
-        print(f"Possible actions: {possibleActions}")
+        # print(f"Observable state: {observableState}")
+        # print(f"Possible actions: {possibleActions}")
         while self.running:
             self.step()
-            if self.time > 10000:
+            if self.time > 1000000:
                 break
 
     def trainMany(self, iterations: int, environment: Type[Environment], *args: Any):
