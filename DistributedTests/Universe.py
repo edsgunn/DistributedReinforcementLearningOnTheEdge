@@ -1,35 +1,25 @@
 from typing import Any, List, Optional, Tuple, Type
-from SingleAgentTests.Environment import Environment
-from SingleAgentTests.Agent import Agent
+from DistributedTests.Environment import Environment
+from DistributedTests.CentralLearner import CentralLearner
 
 class Universe:
 
     def __init__(self, environments: List[Environment], centralLearner: CentralLearner) -> None:
-        self.environment = environment
-        self.agent = agent
+        self.environments = environments
         self.centralLearner = centralLearner
-        self.history = []
+        self.time = None
+        self.running = None
 
     def step(self) -> None:
-        # print(f"Step: {self.time}\n---------------------------------")
-        action = self.agent.getAction()
-        self.running = self.environment.step(action)
-        observableState = self.environment.getObservableState()
-        possibleActions = self.environment.getPossibleActions()
-        reward = self.environment.getReward()
-        self.agent.step(observableState, possibleActions, reward)
+        for environment in self.environments:
+            environment.step()
+        self.centralLearner.step()
         
-        self.history.append((self.history[-1][2], action, observableState, reward, None if self.running else self.time))
         self.time += 1
 
     def start(self):
         self.running = True
         self.time: int = 0
-        observableState = self.environment.getObservableState()
-        possibleActions = self.environment.getPossibleActions()
-        self.history.append((None, None, observableState, None, None))
-        # print(f"Observable state: {observableState}")
-        # print(f"Possible actions: {possibleActions}")
         while self.running:
             self.step()
             if self.time > 1000000:
@@ -37,13 +27,9 @@ class Universe:
 
     def trainMany(self, iterations: int, environment: Type[Environment], *args: Any):
         for _ in range(iterations):
-            self.agent.printV2D()
-            self.environment = environment(*args)
-            state = self.environment.getObservableState()
-            self.agent.nextEpisode(state)
+            for enviroment in self.environments:
+                environment.nextEpisode()
             self.start()
 
-    def getHistory(self) -> List[Tuple[Optional[int],...]]:
-        return self.history
         
 

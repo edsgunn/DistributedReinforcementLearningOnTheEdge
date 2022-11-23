@@ -1,6 +1,8 @@
 from Common.Types import ActionSet, State
 from DistributedTests.CentralLearner import CentralLearner
 from Common.Types import Action
+
+
 class Agent:
 
     def __init__(self):
@@ -13,7 +15,7 @@ class Agent:
         self.centralLearner = centralLearner
         self.centralLearner.addAgent(self)
 
-    def step(self, observableState: State, possibleActions: ActionSet, reward: float) -> None:
+    def step(self, observableState: State, possibleActions: ActionSet, reward: float) -> Action:
         pass
 
     def nextEpisode(self) -> None:
@@ -23,6 +25,9 @@ class Agent:
         return self.currentAction
 
     def generateNextAction(self) -> None:
+        pass
+
+    def sendMessage(self, message):
         pass
 
     def getV2D(self):

@@ -8,3 +8,13 @@ class CentralLearner:
 
     def step(self):
         pass
+
+    def addAgent(self, agent: Agent):
+        self.agents.append(agent)
+
+    def recieveMessage(self, message):
+        pass
+
+    def sendMessage(self, message):
+        for agent in self.agents:
+            agent.recieveMessage(message)
