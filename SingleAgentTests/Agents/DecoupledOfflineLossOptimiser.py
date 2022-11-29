@@ -19,7 +19,7 @@ class DecoupledOfflineLossOptimiser(OfflineAgent):
         self.indexStateActions = self.q.keys()
         self.stateActionIndicies = dict(zip(self.indexStateActions,[i for i in range(len(self.possibleStateActions))]))
         self.oldq = self.q.copy()
-        self.oldqvec = np.zeros(len(self.indexStateActions))
+        self.oldqvec = np.zeros((len(self.indexStateActions),1 ))
         self.d = []
         self.numState0s = max([stateAction[0][0] for stateAction in self.possibleStateActions])
         self.numState1s = max([stateAction[0][1] for stateAction in self.possibleStateActions])
@@ -74,11 +74,12 @@ class DecoupledOfflineLossOptimiser(OfflineAgent):
             em[j, 0] = 1
             emprime[jprime, 0] = 1
             A += np.matmul(em,np.transpose(em))
-            b += em*(d[2]+self.gamma*np.transpose(emprime)*self.oldqvec)
+            b += em*(d[2]+self.gamma*np.matmul(np.transpose(emprime),self.oldqvec))
         np.set_printoptions(threshold=np.inf)
         self.oldq = self.q.copy()
         qvec = np.linalg.solve(A,b)
         self.oldqvec = qvec
+        print(self.oldqvec)
         self.q = dict(zip(self.indexStateActions, qvec.reshape(numStateActions)))
         # print(f"Qaftervec = {self.q}")
         # self.epsilon /= 1.05
