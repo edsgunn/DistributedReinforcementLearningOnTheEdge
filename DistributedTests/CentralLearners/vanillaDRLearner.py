@@ -4,12 +4,12 @@ from Common.Types import State, Action
 
 class VanillaDRLearner(CentralLearner):
 
-    def __init__(self, alpha: float, gamma: float, possibleStateActions: List[Tuple[State, Action]]) -> None:
+    def __init__(self, alpha: float, gamma: float) -> None:
         self.experience = []
         self.alpha = alpha
         self.gamma = gamma
-        self.possibleStateActions = possibleStateActions
-        self.q = self.q = { stateAction: 0 for stateAction in self.possibleStateActions }
+        self.possibleStateActions = None
+        self.q = self.q = None
         super().__init__()
 
     def step(self):
@@ -24,6 +24,10 @@ class VanillaDRLearner(CentralLearner):
 
         self.experience = []
         self.sendMessage(self.q)
+
+    def initialize(self, possibleStateActions: List[Tuple[State, Action]]):
+        self.possibleStateActions = possibleStateActions
+        self.q = self.q = { stateAction: 0 for stateAction in self.possibleStateActions }
 
     def recieveMessage(self, message):
         self.experience.append(message)

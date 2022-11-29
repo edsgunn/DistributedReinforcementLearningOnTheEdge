@@ -6,13 +6,13 @@ from DistributedTests.CentralLearner import CentralLearner
 
 class SimpleGrid(SingleAgentEnvironment):
 
-    def __init__(self, agent: Agent, centralLearner: CentralLearner, width: int, height: int, terminal: Tuple[int, int]) -> None:
+    def __init__(self, centralLearner: CentralLearner, width: int, height: int, terminal: Tuple[int, int], agent: Agent, *agentArgs) -> None:
         self.height = height
         self.width = width
         self.terminal = terminal
         self.agentPosition = (0,0)
         self.possibleActions = [0,1,2,3,4] #[L,R,U,D,S]
-        super().__init__(agent, centralLearner)
+        super().__init__(centralLearner, agent, self.getObservableState(), self.getPossibleActions(), self.getAllPossibleStateActions(), *agentArgs)
 
     def getObservableState(self) -> State:
         return self.agentPosition

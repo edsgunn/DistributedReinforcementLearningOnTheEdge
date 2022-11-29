@@ -59,35 +59,3 @@ class Agent:
         self.lastAction = None
         self.currentState = state
         self.generateNextAction()
-
-
-class OnlineAgent(Agent):
-
-    def step(self, observableState: State, possibleActions: ActionSet, reward: float):
-        print(f"State: {observableState}")
-        print(f"Possible actions: {possibleActions}")
-        print(f"Reward: {reward}")
-        self.lastState = self.currentState
-        self.currentState = observableState
-        self.generateNextAction()
-
-
-    
-
-
-class OfflineAgent(Agent):
-
-    def __init__(self, trainingInterval: int) -> None:
-        super().__init__()
-        self.trainingInterval = trainingInterval
-        self.episodeNumber = 1
-
-    def nextEpisode(self, state) -> None:
-        super().nextEpisode(state)
-        self.episodeNumber += 1
-        print(f"Episode number: {self.episodeNumber}, Training Interval: {self.trainingInterval}")
-        if self.episodeNumber % self.trainingInterval == 0:
-            self.train()
-
-    def train(self) -> None:
-        pass

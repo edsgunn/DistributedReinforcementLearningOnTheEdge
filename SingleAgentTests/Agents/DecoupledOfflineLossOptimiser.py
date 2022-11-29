@@ -5,7 +5,7 @@ from SingleAgentTests.Agent import OfflineAgent
 from Common.Types import State, Action, ActionSet
 
 
-class OfflineLossOptimiser(OfflineAgent):
+class DecoupledOfflineLossOptimiser(OfflineAgent):
 
     def __init__(self, trainingInterval: int, epsilon: float, epsilon2: float, gamma: float, initailState: State, possibleActions: ActionSet, possibleStateActions: List[Tuple[State, Action]]):
         self.episodeNumber = 1
@@ -19,6 +19,7 @@ class OfflineLossOptimiser(OfflineAgent):
         self.indexStateActions = self.q.keys()
         self.stateActionIndicies = dict(zip(self.indexStateActions,[i for i in range(len(self.possibleStateActions))]))
         self.oldq = self.q.copy()
+        self.oldqvec = np.zeros(len(self.indexStateActions))
         self.d = []
         self.numState0s = max([stateAction[0][0] for stateAction in self.possibleStateActions])
         self.numState1s = max([stateAction[0][1] for stateAction in self.possibleStateActions])
@@ -72,12 +73,12 @@ class OfflineLossOptimiser(OfflineAgent):
             emprime = np.zeros((numStateActions,1))
             em[j, 0] = 1
             emprime[jprime, 0] = 1
-            E = em - self.gamma*emprime
-            A += np.matmul(E,np.transpose(E))
-            b += d[2]*E
+            A += np.matmul(em,np.transpose(em))
+            b += em*(d[2]+self.gamma*np.transpose(emprime)*self.oldqvec)
         np.set_printoptions(threshold=np.inf)
         self.oldq = self.q.copy()
         qvec = np.linalg.solve(A,b)
+        self.oldqvec = qvec
         self.q = dict(zip(self.indexStateActions, qvec.reshape(numStateActions)))
         # print(f"Qaftervec = {self.q}")
         # self.epsilon /= 1.05

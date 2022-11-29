@@ -26,8 +26,8 @@ class Environment(ABC):
         pass
 
 class SingleAgentEnvironment(Environment):
-    def __init__(self, agent: Agent, centralLearner: CentralLearner) -> None:
-        self.agent = agent
+    def __init__(self, centralLearner: CentralLearner, agent: Agent, *agentArgs) -> None:
+        self.agent = agent(*agentArgs)
         self.agent.addCentralLearner(centralLearner)
 
 class MultiAgentEnvironement(Environment):
