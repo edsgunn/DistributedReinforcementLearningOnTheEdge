@@ -4,6 +4,11 @@ from DistributedTests.Agent import Agent
 from DistributedTests.CentralLearner import CentralLearner
 from abc import ABC
 
+class EnvironmentFactory:
+    
+    def makeEnvironments():
+        pass
+
 class Environment(ABC):
 
 

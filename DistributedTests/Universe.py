@@ -9,10 +9,12 @@ class Universe:
         self.centralLearner = centralLearner
         self.time = None
         self.running = None
+        self.episode = 0
 
     def step(self) -> None:
+        self.running = False
         for environment in self.environments:
-            environment.step()
+            self.running |= environment.step()
         self.centralLearner.step()
         
         self.time += 1
@@ -20,15 +22,17 @@ class Universe:
     def start(self):
         self.running = True
         self.time: int = 0
+        # print(f"Episode: {self.episode}")
         while self.running:
             self.step()
             if self.time > 1000000:
                 break
+        self.episode += 1
 
-    def trainMany(self, iterations: int, environment: Type[Environment], *args: Any):
+    def trainMany(self, iterations: int):
         for _ in range(iterations):
             for enviroment in self.environments:
-                environment.nextEpisode()
+                enviroment.nextEpisode()
             self.start()
 
         
