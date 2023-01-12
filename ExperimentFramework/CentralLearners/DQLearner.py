@@ -1,8 +1,16 @@
-from DistributedTests.CentralLearner import CentralLearner
+from ExperimentFramework.CentralLearner import CentralLearnerFactory, CentralLearner
 from typing import List, Tuple
 from Common.Types import State, Action
 
-class VanillaDRLearner(CentralLearner):
+class DQLearnerFactory(CentralLearnerFactory):
+
+    def __init__(self):
+        pass
+
+    def makeCentralLearner(self):
+        pass
+
+class DQLearner(CentralLearner):
 
     def __init__(self, alpha: float, gamma: float) -> None:
         self.experience = []

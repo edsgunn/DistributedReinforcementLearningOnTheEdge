@@ -1,12 +1,20 @@
-from DistributedTests.Agent import Agent
+from ExperimentFramework.Agent import AgentFactory, Agent
 from Common.Types import State, Action, ActionSet
 from typing import List, Tuple
 import random
 
+
+class DumbAgentFactory(AgentFactory):
+
+    def makeAgent(self, environmentInfo):
+        return DumbAgent(self.agentParameters, self.centralLearner, environmentInfo)
+
 class DumbAgent(Agent):
 
-    def __init__(self, epsilon: float, initailState: State, possibleActions: ActionSet, possibleStateActions: List[Tuple[State, Action]]) -> None:
-        self.epsilon = epsilon
+    def __init__(self, parameters, centralLearner, environmentInfo) -> None:
+        self.parameters = parameters
+        self.centralLearner = centralLearner
+        self.epsilon = parameters["epsilon"]
         self.possibleActions = possibleActions
         self.currentState = initailState
         self.possibleStateActions = possibleStateActions

@@ -1,16 +1,26 @@
 from typing import List, Tuple
 from Common.Types import State, Action, ActionSet
-from DistributedTests.Agent import Agent
-from DistributedTests.CentralLearner import CentralLearner
-from abc import ABC
+from ExperimentFramework.Agent import Agent
+from ExperimentFramework.CentralLearner import CentralLearner
 
 class EnvironmentFactory:
-    
-    def makeEnvironments():
-        pass
+    def __init__(self, environment, environmentParameters, contingentFactory):
+        self.environmentParameters = environmentParameters
+        self.typeOfEnvironment = environment
+        self.contingentFactory = contingentFactory
 
-class Environment(ABC):
+    def makeEnvironments(self, numAgents):
+        return [self.typeOfEnvironment(self.environmentParameters, self.contingentFactory) for _ in range(numAgents)]
 
+
+class Environment:
+    name = None
+
+    def __init__(self, parameters, contingentFactory):
+        self.parameters = parameters
+        self.contingentFactory = contingentFactory
+        environmentInfo = None
+        self.agents = contingentFactory.makeAgents(environmentInfo)
 
     def getObservableState(self) -> State:
         pass
@@ -30,11 +40,6 @@ class Environment(ABC):
     def nextEpisode(self) -> None:
         pass
 
-class SingleAgentEnvironment(Environment):
-    
-    def __init__(self, centralLearner: CentralLearner, agent: Agent, *agentArgs) -> None:
-        self.agent = agent(*agentArgs)
-        self.agent.addCentralLearner(centralLearner)
-
-class MultiAgentEnvironement(Environment):
-    pass
+    @classmethod
+    def getName(cls):
+        return cls.name

@@ -20,7 +20,7 @@ class Universe:
         self.environments = None
         self.centralLearner = None
 
-        self.time = None
+        self.stepNumber = None
         self.running = None
         self.episode = None
 
@@ -54,16 +54,17 @@ class Universe:
             self.running |= environment.step()
         self.centralLearner.step()
         
-        self.time += 1
+        self.stepNumber += 1
 
     def start(self):
         self.running = True
         self.logger.setEpisode(self.episode)
-        self.time: int = 0
+        self.stepNumber: int = 0
         while self.running:
             self.step()
-            if self.time > 1000000:
-                break
+            if maxSteps := self.parameters.get("maxSteps"):
+                if self.stepNumber > maxSteps:
+                    break
         self.episode += 1        
 
         
