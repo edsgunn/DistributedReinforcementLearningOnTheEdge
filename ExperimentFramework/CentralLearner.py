@@ -3,6 +3,7 @@ class CentralLearnerFactory:
 
     def __init__(self, parameters):
         self.parameters = parameters
+        self.lastMessage = None
 
     def makeCentralLearner():
         pass
@@ -22,5 +23,9 @@ class CentralLearner:
         pass
 
     def sendMessage(self, message):
+        self.lastMessage = message
         for agent in self.agents:
             agent.recieveMessage(message)
+
+    def logStep():
+        pass

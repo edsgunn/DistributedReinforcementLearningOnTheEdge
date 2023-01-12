@@ -1,8 +1,8 @@
 from typing import List, Tuple
-from DistributedTests.Environment import SingleAgentEnvironment
+from ExperimentFramework.Environment import SingleAgentEnvironment
 from Common.Types import Action, ActionSet, State
-from DistributedTests.Agent import Agent
-from DistributedTests.CentralLearner import CentralLearner
+from ExperimentFramework.Agent import Agent
+from ExperimentFramework.CentralLearner import CentralLearner
 
 class SimpleGrid(SingleAgentEnvironment):
 

@@ -19,8 +19,10 @@ class Environment:
     def __init__(self, parameters, contingentFactory):
         self.parameters = parameters
         self.contingentFactory = contingentFactory
-        environmentInfo = None
-        self.agents = contingentFactory.makeAgents(environmentInfo)
+        self.agents = contingentFactory.makeContingent(self.getEnvironmentInfo())
+
+    def getEnvironmentInfo(self):
+        pass
 
     def getObservableState(self) -> State:
         pass
@@ -31,7 +33,7 @@ class Environment:
     def getAllPossibleStateActions(self) -> List[Tuple[State, Action]]:
         pass 
 
-    def step(self, action: Action) -> bool:
+    def step(self) -> bool:
         pass
 
     def getReward(self) -> float:

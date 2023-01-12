@@ -19,12 +19,17 @@ class Agent:
         self.id = uuid4()
         self.currentAction = None
         self.lastAction = None
+        self.lastMessage = None
+        self.lastReward = None
         self.parameters = parameters
         self.centralLearner = centralLearner
         self.centralLearner.addAgent(self)
         self.generateNextAction()
 
-    def step(self, observableState: State, possibleActions: ActionSet, reward: float) -> Action:
+    def getId(self):
+        return str(self.id)
+
+    def step(self, observation: State, reward: float) -> Action:
         pass
 
     def nextEpisode(self) -> None:
@@ -37,6 +42,7 @@ class Agent:
         pass
 
     def sendMessage(self, message):
+        self.lastMessage = message
         self.centralLearner.recieveMessage(message)
 
     def recieveMessage(self, message):

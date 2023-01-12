@@ -13,7 +13,6 @@ class Universe:
         self.parameters = parameters
 
         self.environmentFactory = None
-        self.centralLearnerFactory = None
         
         self.logger = Logger(self.parameters)
         self.algorithm = None
@@ -26,26 +25,27 @@ class Universe:
 
 
     def runTrial(self):
-        for algorithm, algorithmParameters in zip(self.algorithm, self.algorithmParameters):
-            self.algorithm = algorithm(self.logger, algorithmParameters)
+        for algorithm, algorithmParameters in zip(self.algorithms, self.algorithmParameters):
+            self.algorithm = algorithm(algorithmParameters)
             self.logger.setAlgorithm(algorithm.getName(), algorithmParameters)
             for numAgents in self.parameters["numbersOfAgents"]:
                 self.logger.setNumberOfAgents(numAgents)
                 for environment, environmentParameters in zip(self.typesOfEnvironment, self.environmentParameters):
                     self.logger.setEnvironment(environment.getName(), environmentParameters)
-                    self.environmentFactory = EnvironmentFactory(environment, environmentParameters, algorithm, algorithmParameters)
-                    self.initEnvironment(numAgents)
+                    self.centralLearner = self.algorithm.makeCentralLearner()
+                    self.logger.addCentralLearner(self.centralLearner)
+                    self.environmentFactory = EnvironmentFactory(environment, environmentParameters, self.algorithm.makeContingentFactory(self.centralLearner, self.logger))
+                    self.environments = self.environmentFactory.makeEnvironments(numAgents)
+                    self.episode = 0
                     self.runTraining(self.parameters["numEpisodes"])
 
-    def initEnvironment(self, numAgents: int):
-        self.environments = self.environmentFactory.makeEnvironments(numAgents)
-        self.centralLearner = self.centralLearnerFactory.makeCentralLearner()
-        self.episode = 0
+        
 
     def runTraining(self, iterations: int):
         for _ in range(iterations):
             for enviroment in self.environments:
                 enviroment.nextEpisode()
+            self.centralLearner.nextEpisode(self.environments[0].getEnvironmentInfo())
             self.start()
 
     def step(self) -> None:
@@ -62,6 +62,7 @@ class Universe:
         self.stepNumber: int = 0
         while self.running:
             self.step()
+            self.logger.logStep(self.stepNumber)
             if maxSteps := self.parameters.get("maxSteps"):
                 if self.stepNumber > maxSteps:
                     break

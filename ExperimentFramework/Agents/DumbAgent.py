@@ -2,6 +2,9 @@ from ExperimentFramework.Agent import AgentFactory, Agent
 from Common.Types import State, Action, ActionSet
 from typing import List, Tuple
 import random
+from collections import defaultdict
+from copy import copy
+import numpy as np
 
 
 class DumbAgentFactory(AgentFactory):
@@ -12,21 +15,16 @@ class DumbAgentFactory(AgentFactory):
 class DumbAgent(Agent):
 
     def __init__(self, parameters, centralLearner, environmentInfo) -> None:
-        self.parameters = parameters
-        self.centralLearner = centralLearner
         self.epsilon = parameters["epsilon"]
-        self.possibleActions = possibleActions
-        self.currentState = initailState
-        self.possibleStateActions = possibleStateActions
-        self.q = { stateAction: 0 for stateAction in self.possibleStateActions }
-        super().__init__()
+        self.possibleActions = environmentInfo["actionSpace"]
+        self.currentState = environmentInfo["observation"]
+        self.q = defaultdict(lambda: np.zeros(self.possibleActions.n))
+        super().__init__(parameters, centralLearner)
 
-    def step(self, observableState: State, possibleActions: ActionSet, reward: float) -> Action:
-        # print(f"State: {observableState}")
-        # print(f"Possible actions: {possibleActions}")
-        # print(f"Reward: {reward}")
-        self.lastState = self.currentState
-        self.currentState = observableState
+    def step(self, observation: State, reward: float) -> Action:
+        self.lastState = copy(self.currentState)
+        self.currentState = observation
+        self.lastReward = reward
         self.generateNextAction()
         self.sendMessage((self.lastState, self.lastAction, reward, self.currentState, self.currentAction))
 
@@ -34,25 +32,38 @@ class DumbAgent(Agent):
         self.centralLearner.recieveMessage(message)
 
     def recieveMessage(self, message):
-        self.q = message
-
-    def nextEpisode(self, initialState, possibleActions) -> None:
-        self.currentState = initialState
-        self.possibleActions = possibleActions
-        self.lastState = None
-        self.lastAction = None
+        self.q = copy(message)
     
     def getAction(self) -> Action:
         return self.currentAction
 
     def generateNextAction(self) -> None:
-        actionValues = {action:self.q[(state, action)] for state, action in self.q.keys() if state == self.currentState}
-        bestAction = max(actionValues, key= lambda key: actionValues[key])
-        m = len(self.possibleActions)
-        weights = [self.epsilon/m if i != bestAction else self.epsilon/m + 1 - self.epsilon for i in range(m)]
+        # with probability epsilon return a random action to explore the environment
         self.lastAction = self.currentAction
-        self.currentAction = random.choices(self.possibleActions, weights=weights)[0]
+        if np.random.random() < self.epsilon:
+            self.currentAction =  self.possibleActions.sample()
+
+        # with probability (1 - epsilon) act greedily (exploit)
+        else:
+            self.currentAction = int(np.argmax(self.q[self.currentState]))
+
+        # actionValues = {action:self.q[(state, action)] for state, action in self.q.keys() if state == self.currentState}
+        # bestAction = max(actionValues, key= lambda key: actionValues[key])
+        # m = len(self.possibleActions)
+        # weights = [self.epsilon/m if i != bestAction else self.epsilon/m + 1 - self.epsilon for i in range(m)]
+        # self.lastAction = self.currentAction
+        # self.currentAction = random.choices(self.possibleActions, weights=weights)[0]
         # print(f"Action values: {actionValues}, Best action: {bestAction}, Actual action: {self.currentAction}")
 
-
+    def logStep(self):
+        data = {
+            "lastState": str(self.lastState),
+            "lastAction": str(self.lastAction),
+            "reward": str(self.lastReward),
+            "currentState": str(self.currentState),
+            "currentState": str(self.currentAction),
+            "?message": str(self.lastMessage)
+        }
+        self.lastMessage = None
+        return data
 
