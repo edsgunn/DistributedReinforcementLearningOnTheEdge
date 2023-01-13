@@ -27,7 +27,7 @@ class Agent:
         self.generateNextAction()
 
     def getId(self):
-        return str(self.id)
+        return self.id
 
     def step(self, observation: State, reward: float) -> Action:
         pass

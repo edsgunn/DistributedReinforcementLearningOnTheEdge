@@ -18,8 +18,11 @@ class DumbAgent(Agent):
         self.epsilon = parameters["epsilon"]
         self.possibleActions = environmentInfo["actionSpace"]
         self.currentState = environmentInfo["observation"]
-        self.q = defaultdict(lambda: np.zeros(self.possibleActions.n))
+        self.q = defaultdict(self.zerosReturn)
         super().__init__(parameters, centralLearner)
+
+    def zerosReturn(self):
+        return np.zeros(self.possibleActions.n)
 
     def step(self, observation: State, reward: float) -> Action:
         self.lastState = copy(self.currentState)
@@ -57,12 +60,12 @@ class DumbAgent(Agent):
 
     def logStep(self):
         data = {
-            "lastState": str(self.lastState),
-            "lastAction": str(self.lastAction),
-            "reward": str(self.lastReward),
-            "currentState": str(self.currentState),
-            "currentState": str(self.currentAction),
-            "?message": str(self.lastMessage)
+            "lastState": self.lastState,
+            "lastAction": self.lastAction,
+            "reward": self.lastReward,
+            "currentState": self.currentState,
+            "currentState": self.currentAction,
+            "?message": self.lastMessage
         }
         self.lastMessage = None
         return data
