@@ -3,7 +3,7 @@ from typing import List, Tuple
 from Common.Types import State, Action
 from collections import defaultdict
 import numpy as np
-import json
+from copy import copy
 
 class DQLearnerFactory(CentralLearnerFactory):
 
@@ -32,22 +32,22 @@ class DQLearner(CentralLearner):
     def step(self):
         for stateAction, update in self.updates.items():
             self.q[stateAction[0]][stateAction[1]] += self.alpha*np.mean(update)
+        # print(self.q)
         self.updates = defaultdict(self.listReturn)
         self.sendMessage(self.q)
 
     def nextEpisode(self, environmentInfo):
         self.actionSpace = environmentInfo["actionSpace"]
         self.updates = defaultdict(self.listReturn)
-        self.q = defaultdict(self.zerosReturn)
 
     def recieveMessage(self, message):
-        self.updates[(message[0],message[1])].append(message[2]+self.gamma*max(self.q[message[3]]) - self.q[message[0]][message[1]])
+        self.updates[(message[0],message[1])].append(message[2]+self.gamma*np.max(self.q[message[3]]) - self.q[message[0]][message[1]])
 
     def getQ(self):
         return self.q
     
     def logStep(self):
-        data = {"message": self.lastMessage, "valueFunction": self.q}
+        data = {"?message": copy(self.lastMessage), "?valueFunction": copy(self.q)}
         self.lastMessage = None
         return data
 

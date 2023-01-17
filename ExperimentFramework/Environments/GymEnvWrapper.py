@@ -35,3 +35,5 @@ class GymEnv(Environment):
     def nextEpisode(self) -> None:
         self.running = True
         self.currentObservation, _ = self.environment.reset()
+        for agent in self.agents:
+            agent.nextEpisode(self.currentObservation)

@@ -1,18 +1,23 @@
 from typing import List, Tuple
-from ExperimentFramework.Environment import SingleAgentEnvironment
+from ExperimentFramework.Environment import Environment
 from Common.Types import Action, ActionSet, State
 from ExperimentFramework.Agent import Agent
 from ExperimentFramework.CentralLearner import CentralLearner
+from gymnasium.spaces import Discrete
 
-class SimpleGrid(SingleAgentEnvironment):
-
-    def __init__(self, centralLearner: CentralLearner, width: int, height: int, terminal: Tuple[int, int], agent: Agent, *agentArgs) -> None:
-        self.height = height
-        self.width = width
-        self.terminal = terminal
+class SimpleGrid(Environment):
+    name = "SimpleGrid"
+    
+    def __init__(self, parameters, contingentFactory):
+        self.height = parameters["height"]
+        self.width = parameters["width"]
+        self.terminal = parameters["terminal"]
         self.agentPosition = (0,0)
-        self.possibleActions = [0,1,2,3,4] #[L,R,U,D,S]
-        super().__init__(centralLearner, agent, *agentArgs, self.getObservableState(), self.getPossibleActions(), self.getAllPossibleStateActions())
+        self.possibleActions = Discrete(5) #[L,R,U,D,S]
+        super().__init__(parameters, contingentFactory)
+
+    def getEnvironmentInfo(self):
+        return {"actionSpace": self.possibleActions, "observation":self.getObservableState()}
 
     def getObservableState(self) -> State:
         return self.agentPosition
@@ -27,7 +32,7 @@ class SimpleGrid(SingleAgentEnvironment):
         if self.agentPosition == self.terminal:
             return False
 
-        action = self.agent.getAction()
+        action = self.agents[0].getAction()
         if action == 0:
             self.agentPosition = (max(0, self.agentPosition[0]-1), self.agentPosition[1])
         elif action == 1:
@@ -39,7 +44,7 @@ class SimpleGrid(SingleAgentEnvironment):
         elif action == 4:
             pass
         
-        self.agent.step(self.getObservableState(), self.getPossibleActions(), self.getReward())
+        self.agents[0].step(self.getObservableState(), self.getReward())
         if self.agentPosition == self.terminal:
             return False
         else:
@@ -47,9 +52,7 @@ class SimpleGrid(SingleAgentEnvironment):
 
     def nextEpisode(self) -> None:
         self.agentPosition = (0,0)
-        self.agent.nextEpisode(self.getObservableState(), self.getPossibleActions())
-
-
+        self.agents[0].nextEpisode(self.getObservableState())
 
     def getReward(self) -> float:
         if self.agentPosition == self.terminal:

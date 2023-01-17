@@ -33,6 +33,7 @@ class DumbAgent(Agent):
 
     def sendMessage(self, message):
         self.centralLearner.recieveMessage(message)
+        self.lastMessage = message
 
     def recieveMessage(self, message):
         self.q = copy(message)
@@ -60,12 +61,12 @@ class DumbAgent(Agent):
 
     def logStep(self):
         data = {
-            "lastState": self.lastState,
-            "lastAction": self.lastAction,
-            "reward": self.lastReward,
-            "currentState": self.currentState,
-            "currentState": self.currentAction,
-            "?message": self.lastMessage
+            "lastState": copy(self.lastState),
+            "lastAction": copy(self.lastAction),
+            "reward": copy(self.lastReward),
+            "currentState": copy(self.currentState),
+            "currentState": copy(self.currentAction),
+            "?message": copy(self.lastMessage)
         }
         self.lastMessage = None
         return data

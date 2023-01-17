@@ -31,9 +31,6 @@ class Agent:
 
     def step(self, observation: State, reward: float) -> Action:
         pass
-
-    def nextEpisode(self) -> None:
-        pass
     
     def getAction(self) -> Action:
         return self.currentAction
