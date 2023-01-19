@@ -34,13 +34,13 @@ class DQLearner(CentralLearner):
             self.q[stateAction[0]][stateAction[1]] += self.alpha*np.mean(update)
         # print(self.q)
         self.updates = defaultdict(self.listReturn)
-        self.sendMessage(self.q)
+        self.broadcastMessage(self.q)
 
     def nextEpisode(self, environmentInfo):
         self.actionSpace = environmentInfo["actionSpace"]
         self.updates = defaultdict(self.listReturn)
 
-    def recieveMessage(self, message):
+    def recieveMessage(self, agentId, message):
         self.updates[(message[0],message[1])].append(message[2]+self.gamma*np.max(self.q[message[3]]) - self.q[message[0]][message[1]])
 
     def getQ(self):

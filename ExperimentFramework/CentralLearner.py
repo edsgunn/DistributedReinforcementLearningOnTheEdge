@@ -19,13 +19,19 @@ class CentralLearner:
     def addAgent(self, agent):
         self.agents.append(agent)
 
-    def recieveMessage(self, message):
+    def recieveMessage(self, agentId, message):
         pass
 
-    def sendMessage(self, message):
+    def sendMessage(self, agentId, message):
         self.lastMessage = message
         for agent in self.agents:
-            agent.recieveMessage(message)
+            if agent.getId() == agentId:
+                agent.recieveMessage(message)
+
+    def broadcastMessage(self, message):
+        self.lastMessage = message
+        for agent in self.agents:
+            agent.recieveMessage(message)    
 
     def logStep():
         pass

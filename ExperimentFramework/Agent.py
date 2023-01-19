@@ -40,7 +40,7 @@ class Agent:
 
     def sendMessage(self, message):
         self.lastMessage = message
-        self.centralLearner.recieveMessage(message)
+        self.centralLearner.recieveMessage(self.getId(), message)
 
     def recieveMessage(self, message):
         pass
