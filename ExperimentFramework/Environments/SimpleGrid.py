@@ -1,9 +1,9 @@
-from typing import List, Tuple
+from typing import List
 from ExperimentFramework.Environment import Environment
 from Common.Types import Action, ActionSet, State
 from ExperimentFramework.Agent import Agent
 from ExperimentFramework.CentralLearner import CentralLearner
-from gymnasium.spaces import Discrete
+from gymnasium.spaces import Tuple, Discrete
 
 class SimpleGrid(Environment):
     name = "SimpleGrid"
@@ -12,12 +12,13 @@ class SimpleGrid(Environment):
         self.height = parameters["height"]
         self.width = parameters["width"]
         self.terminal = parameters["terminal"]
+        self.observationSpace = Tuple((Discrete(self.width), Discrete(self.height)))
         self.agentPosition = (0,0)
         self.possibleActions = Discrete(5) #[L,R,U,D,S]
         super().__init__(parameters, contingentFactory)
 
     def getEnvironmentInfo(self):
-        return {"actionSpace": self.possibleActions, "observation":self.getObservableState()}
+        return {"actionSpace": self.possibleActions, "observation":self.getObservableState(), "observationSpace": self.observationSpace}
 
     def getObservableState(self) -> State:
         return self.agentPosition
@@ -25,7 +26,7 @@ class SimpleGrid(Environment):
     def getPossibleActions(self) -> ActionSet:
         return self.possibleActions
 
-    def getAllPossibleStateActions(self) -> List[Tuple[State, Action]]:
+    def getAllPossibleStateActions(self):
         return [((x, y), action) for action in self.possibleActions for x in range(self.width) for y in range(self.height)] 
 
     def step(self) -> bool:
@@ -46,11 +47,13 @@ class SimpleGrid(Environment):
         
         self.agents[0].step(self.getObservableState(), self.getReward())
         if self.agentPosition == self.terminal:
+            self.running = False
             return False
         else:
             return True
 
     def nextEpisode(self) -> None:
+        self.running = True
         self.agentPosition = (0,0)
         self.agents[0].nextEpisode(self.getObservableState())
 

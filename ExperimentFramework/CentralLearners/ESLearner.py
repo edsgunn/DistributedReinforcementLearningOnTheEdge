@@ -21,7 +21,7 @@ class ESLearner(CentralLearner):
         self.hiddenSize = parameters["hiddenSize"]
         self.outputSize = None
         self.numParams = None
-
+        self.agentGenerators = {}
         self.weights = None
         super().__init__()
 
@@ -42,7 +42,8 @@ class ESLearner(CentralLearner):
 
     def addAgent(self, agent):
         super().addAgent(agent)
-        self.agentGenerators[agent.getId()] = self.rng.randint(0,1000000)
+        seed = self.rng.integers(0,self.parameters["maxSeedInt"])
+        self.agentGenerators[agent.getId()] = np.random.default_rng(seed)
 
     def recieveMessage(self, agentId, message):
         self.rewards[agentId] = message
@@ -51,6 +52,6 @@ class ESLearner(CentralLearner):
         return self.q
     
     def logStep(self):
-        data = {"?message": copy(self.lastMessage), "?valueFunction": copy(self.q)}
+        data = {"?message": copy(self.lastMessage), "?weights": copy(self.weights)}
         self.lastMessage = None
         return data

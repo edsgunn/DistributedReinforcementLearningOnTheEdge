@@ -49,4 +49,4 @@ class AgentLogger:
         self.agent = agent
 
     def logStep(self):
-        return self.agent.getId(), self.agent.logStep()
+        return str(self.agent.getId()), self.agent.logStep()

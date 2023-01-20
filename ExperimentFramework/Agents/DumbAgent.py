@@ -18,6 +18,7 @@ class DumbAgent(Agent):
         self.epsilon = parameters["epsilon"]
         self.possibleActions = environmentInfo["actionSpace"]
         self.currentState = environmentInfo["observation"]
+        self.obervationSpace = environmentInfo["observationSpace"]
         self.q = defaultdict(self.zerosReturn)
         super().__init__(parameters, centralLearner)
 
@@ -32,7 +33,7 @@ class DumbAgent(Agent):
         self.sendMessage((self.lastState, self.lastAction, reward, self.currentState, self.currentAction))
 
     def sendMessage(self, message):
-        self.centralLearner.recieveMessage(message)
+        self.centralLearner.recieveMessage(self.getId(), message)
         self.lastMessage = message
 
     def recieveMessage(self, message):
@@ -63,7 +64,7 @@ class DumbAgent(Agent):
         data = {
             "lastState": copy(self.lastState),
             "lastAction": copy(self.lastAction),
-            "reward": copy(self.lastReward),
+            "reward": copy(float(self.lastReward)),
             "currentState": copy(self.currentState),
             "currentState": copy(self.currentAction),
             "?message": copy(self.lastMessage)

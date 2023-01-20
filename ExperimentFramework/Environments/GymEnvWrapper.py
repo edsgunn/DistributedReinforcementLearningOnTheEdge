@@ -13,7 +13,7 @@ class GymEnv(Environment):
         super().__init__(parameters, contingentFactory)
     
     def getEnvironmentInfo(self):
-        return {"actionSpace": self.environment.action_space, "observation":self.currentObservation}
+        return {"actionSpace": self.environment.action_space, "observation":self.currentObservation, "observationSpace": self.environment.observation_space}
 
     def getObservableState(self) -> State:
         return self.currentObservation

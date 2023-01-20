@@ -75,7 +75,7 @@ def plotAgentEpisodeReward(data, algorithm, numAgents, environment):
         plt.plot([x for x in range(len(y))],y, label=agent)    
     plt.xlabel('Episode number')
     plt.ylabel('Total reward')
-    plt.legend()
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     plt.show()
 
@@ -85,7 +85,7 @@ def plotAgentEpisodeNumMessages(data, algorithm, numAgents, environment):
         plt.plot([x for x in range(len(y))],y, label=agent)    
     plt.xlabel('Episode number')
     plt.ylabel('Number of messages')
-    plt.legend()
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     plt.show()
 
@@ -95,7 +95,7 @@ def plotAgentEpisodeAverageNumberOfMessagesPerStep(data, algorithm, numAgents, e
         plt.plot([x for x in range(len(y))],y, label=agent)    
     plt.xlabel('Episode number')
     plt.ylabel('Average Number of messages')
-    plt.legend()
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     plt.show()
 

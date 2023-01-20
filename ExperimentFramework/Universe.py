@@ -28,10 +28,13 @@ class Universe:
         for algorithm, algorithmParameters in zip(self.algorithms, self.algorithmParameters):
             self.algorithm = algorithm(algorithmParameters)
             self.logger.setAlgorithm(algorithm.getName(), algorithmParameters)
+            print(f"Running algorithm: {algorithm.getName()}")
             for numAgents in self.parameters["numbersOfAgents"]:
                 self.logger.setNumberOfAgents(numAgents)
+                print(f"Running {numAgents} agents")
                 for environment, environmentParameters in zip(self.typesOfEnvironment, self.environmentParameters):
                     self.logger.setEnvironment(environment.getName(), environmentParameters)
+                    print(f"Running environment: {environment.getName()}")
                     self.centralLearner = self.algorithm.makeCentralLearner()
                     self.logger.addCentralLearner(self.centralLearner)
                     self.environmentFactory = EnvironmentFactory(environment, environmentParameters, self.algorithm.makeContingentFactory(self.centralLearner, self.logger))
@@ -42,9 +45,11 @@ class Universe:
         
 
     def runTraining(self, iterations: int):
+        print("Starting training\n")
         for _ in range(iterations):
             for enviroment in self.environments:
                 enviroment.nextEpisode()
+            print (f"Episode {self.episode}/{self.parameters['numEpisodes']}", end="\r")
             self.centralLearner.nextEpisode(self.environments[0].getEnvironmentInfo())
             self.start()
 
@@ -65,6 +70,7 @@ class Universe:
             self.logger.logStep(self.stepNumber)
             if maxSteps := self.parameters.get("maxSteps"):
                 if self.stepNumber > maxSteps:
+                    print (f"Episode {self.episode}/{self.parameters['numEpisodes']} Episode truncated, {sum([environment.running for environment in self.environments])} agents running", end="\r")
                     break
         self.episode += 1        
 

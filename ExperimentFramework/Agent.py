@@ -24,7 +24,6 @@ class Agent:
         self.parameters = parameters
         self.centralLearner = centralLearner
         self.centralLearner.addAgent(self)
-        self.generateNextAction()
 
     def getId(self):
         return self.id
