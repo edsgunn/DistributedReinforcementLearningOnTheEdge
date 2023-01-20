@@ -5,7 +5,7 @@ from uuid import uuid4
 
 class AgentFactory:
 
-    def __init__(self, agentParameters, centralLearner):
+    def __init__(self, agentParameters, centralLearner, environmentInfo):
         self.agentParameters = agentParameters
         self.centralLearner = centralLearner
         
@@ -15,7 +15,7 @@ class AgentFactory:
 
 class Agent:
 
-    def __init__(self, parameters, centralLearner):
+    def __init__(self, parameters, centralLearner, environmentInfo):
         self.id = uuid4()
         self.currentAction = None
         self.lastAction = None
