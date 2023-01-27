@@ -37,7 +37,7 @@ class ESAgent(Agent):
                         nn.Linear(self.hiddenSize, self.outputSize),
                         nn.Softmax(dim=0))
         self.totalReward = 0
-        super().__init__(parameters, centralLearner)
+        super().__init__(parameters, centralLearner, environmentInfo)
 
     def arrangeParameters(self, vector):
         params = OrderedDict()

@@ -3,6 +3,11 @@ from ExperimentFramework.Environment import Environment, EnvironmentFactory
 from ExperimentFramework.CentralLearner import CentralLearner, CentralLearnerFactory
 from ExperimentFramework.Agent import Agent
 from ExperimentFramework.Logger import Logger
+import multiprocessing as mp
+def envStep(env):
+    return env.step()
+
+
 class Universe:
 
     def __init__(self, typesOfEnvironment: List[Type[Environment]], environmentParameters, algorithms, algorithmParameters, parameters) -> None:
@@ -54,7 +59,10 @@ class Universe:
             self.start()
 
     def step(self) -> None:
+
         self.running = False
+        # with mp.Pool() as pool:
+        #     self.running = any(pool.map(envStep, self.environments))
         for environment in self.environments:
             self.running |= environment.step()
         self.centralLearner.step()

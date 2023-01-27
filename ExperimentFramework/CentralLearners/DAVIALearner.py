@@ -21,21 +21,26 @@ class DAVIALearner(CentralLearner):
         self.epsilon = parameters["epsilon"]
         self.actionSpace = None
         self.observationSpace = None
+        self.lastMessage = None
         self.updates = []
         super().__init__()
 
     def step(self):
         if self.updates:
-            self.weights += self.epsilon*np.mean(self.updates)
+            # print(self.epsilon*np.mean(self.updates, axis=0))
+            self.weights -= np.transpose(self.epsilon*np.mean(self.updates, axis=0))
+            # print(self.weights)
             self.broadcastMessage(self.weights)
+            self.lastMessage = self.weights
             self.updates = []
 
     def nextEpisode(self, environmentInfo):
         if any(x is None for x in [self.actionSpace, self.observationSpace, self.weights]):
             self.actionSpace = environmentInfo["actionSpace"]
             self.observationSpace = environmentInfo["observationSpace"]
-            numObservations = ut.flatten(self.observationSpace, self.observationSpace.sample())
-            self.weights = np.zeros([1,numObservations+1]) #Row vector for ease of use
+            self.feature = environmentInfo["feature"]
+            self.weights = np.zeros([1,self.feature.len()]) #Row vector for ease of use
+
 
     def recieveMessage(self, agentId, message):
         self.updates.append(message)

@@ -45,3 +45,14 @@ class Environment:
     @classmethod
     def getName(cls):
         return cls.name
+
+class Feature:
+
+    def __init__(self):
+        self.featureLength = None
+
+    def __call__(self, state, action):
+        pass
+
+    def len(self):
+        return self.featureLength

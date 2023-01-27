@@ -12,19 +12,6 @@ class DAVIAAgentFactory(AgentFactory):
     def makeAgent(self, environmentInfo):
         return DAVIAAgent(self.agentParameters, self.centralLearner, environmentInfo)
 
-class Feature:
-
-    def __init__(self, action, numStates, numActions):
-        self.action = action
-        self.numStates = numStates
-        self.numActions = numActions
-
-    def __call__(self, state):
-        vec = np.zeros([self.numStates+1, 1])
-        for i in range(self.numActions):
-            vec[self.numActions*self.action+i,1] = state[i]
-            vec[-1,1] = 1
-        return vec 
 
 class DAVIAAgent(Agent):
 
@@ -32,13 +19,18 @@ class DAVIAAgent(Agent):
         self.epsilon = parameters["epsilon"]
         self.lambd = parameters["lambda"]
         self.rho = parameters["rho"]
+        self.gamma = parameters["gamma"]
+        self.T = parameters["T"]
+        self.N = parameters["N"]
+        self.policyEpsilon = parameters["policyEpsilon"]
+        self.k = 0
         self.observationSpace = environmentInfo["observationSpace"]
         self.actionSpace = environmentInfo["actionSpace"]
-        numObservations = ut.flatten(self.observationSpace, self.observationSpace.sample())
-        numActions = ut.flatten(self.actionSpace, self.actionSpace.sample())
-        self.weights = None #Row vector for ease of use
-        self.features = [Feature(action, numObservations, numActions) for action in range(numActions)]
-        super().__init__(parameters, centralLearner)
+        self.experience = []
+        self.feature = environmentInfo["feature"]
+        self.weights = np.zeros([1,self.feature.len()]) #Row vector for ease of use
+        self.lastMessage = None
+        super().__init__(parameters, centralLearner, environmentInfo)
 
 
     def step(self, observation: State, reward: float) -> Action:
@@ -46,8 +38,20 @@ class DAVIAAgent(Agent):
         self.currentState = observation
         self.lastReward = reward
         self.generateNextAction()
-        if self.thresholdReached:
-            self.sendMessage(self.grad)
+        self.experience.append((self.lastState, self.lastAction, reward, self.currentState, self.currentAction))
+        if self.k != 0 and self.k % self.T == 0:
+            grad = self.calculateGrad()
+            # print(self.calculateHessian())
+            if np.matmul(np.matmul(np.transpose(grad), self.calculateHessian()), grad) <= self.lambd/(self.rho**(max(self.N-1-self.k, 0))):
+                self.sendMessage(grad)
+            self.experience = []
+        self.k += 1
+
+    def calculateGrad(self):
+        return (1/len(self.experience))*np.sum((self.feature(lastState,lastAction)*(np.matmul(self.weights,self.feature(lastState, lastAction)) - reward - self.gamma*self.q(currentState, currentAction)) for lastState, lastAction, reward, currentState, currentAction in self.experience), axis=0)
+
+    def calculateHessian(self):
+        return np.eye(self.feature.len()) - self.epsilon*(1/2)*(1/len(self.experience))*np.sum(np.matmul(self.feature(state, action), np.transpose(self.feature(state, action))) for state, action, _, _, _ in self.experience)
 
     def sendMessage(self, message):
         self.centralLearner.recieveMessage(self.getId(), message)
@@ -61,13 +65,13 @@ class DAVIAAgent(Agent):
 
     def generateNextAction(self) -> None:
         self.lastAction = self.currentAction
-        if np.random.random() < self.epsilon:
-            self.currentAction =  self.possibleActions.sample()
+        if np.random.random() < self.policyEpsilon:
+            self.currentAction =  self.actionSpace.sample()
         else:
-            self.currentAction = int(np.argmax([self.q(self.currentState, action) for action in range(self.obervationSpace.nvec)]))
+            self.currentAction = int(np.argmax([self.q(self.currentState, action) for action in range(ut.flatdim(self.actionSpace))]))
 
     def q(self, state, action):
-        return np.matmul(self.weights, self.features[action](state))
+        return np.matmul(self.weights, self.feature(state, action))
 
     def logStep(self):
         data = {

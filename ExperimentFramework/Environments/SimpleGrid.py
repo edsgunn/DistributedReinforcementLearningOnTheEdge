@@ -1,9 +1,22 @@
 from typing import List
-from ExperimentFramework.Environment import Environment
+from ExperimentFramework.Environment import Environment, Feature
 from Common.Types import Action, ActionSet, State
 from ExperimentFramework.Agent import Agent
 from ExperimentFramework.CentralLearner import CentralLearner
 from gymnasium.spaces import Tuple, Discrete
+import numpy as np
+
+class SimpleGridFeature(Feature):
+    def __init__(self, width, height):
+        self.featureLength = width*height+1
+        self.width = width
+
+    def __call__(self, state, action):
+        vec = np.zeros([self.featureLength,1])
+        vec[self.width*state[0]+state[1],0] = 1
+        vec[-1,0] = 1
+        return vec
+
 
 class SimpleGrid(Environment):
     name = "SimpleGrid"
@@ -15,10 +28,11 @@ class SimpleGrid(Environment):
         self.observationSpace = Tuple((Discrete(self.width), Discrete(self.height)))
         self.agentPosition = (0,0)
         self.possibleActions = Discrete(5) #[L,R,U,D,S]
+        self.feature = SimpleGridFeature(self.width, self.height)
         super().__init__(parameters, contingentFactory)
 
     def getEnvironmentInfo(self):
-        return {"actionSpace": self.possibleActions, "observation":self.getObservableState(), "observationSpace": self.observationSpace}
+        return {"actionSpace": self.possibleActions, "observation":self.getObservableState(), "observationSpace": self.observationSpace, "feature": self.feature}
 
     def getObservableState(self) -> State:
         return self.agentPosition
