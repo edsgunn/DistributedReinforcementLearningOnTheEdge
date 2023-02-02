@@ -8,13 +8,27 @@ import numpy as np
 
 class SimpleGridFeature(Feature):
     def __init__(self, width, height):
-        self.featureLength = width*height+1
+        self.featureLength = width*height#+1
         self.width = width
+        self.height = height
 
     def __call__(self, state, action):
         vec = np.zeros([self.featureLength,1])
-        vec[self.width*state[0]+state[1],0] = 1
-        vec[-1,0] = 1
+        i = state[0]
+        j = state[1]
+        vec[self.width*i+j,0] = -1
+        if action == 0:
+            i = max(0, i-1)
+        elif action == 1:
+            i = min(self.width-1, i+1)
+        elif action == 2:
+            j = min(self.height-1, j+1)
+        elif action == 3:
+            j = max(0, j-1)
+        elif action == 4:
+            pass
+        vec[self.width*i+j,0] +=1
+        # vec[-1,0] = 1
         return vec
 
 

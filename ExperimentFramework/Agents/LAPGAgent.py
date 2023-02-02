@@ -8,6 +8,7 @@ import numpy as np
 import torch.nn as nn
 import torch
 import gymnasium.spaces.utils as ut
+from torch.nn.utils import parameters_to_vector
 
 
 class LAPGAgentFactory(AgentFactory):
@@ -28,7 +29,6 @@ class LAPGAgent(Agent):
         self.observationSpace = environmentInfo["observationSpace"]
         self.currentState = environmentInfo["observation"]
         self.lastWeights = None
-        self.weights = None
         self.weightsUpdates = []
         self.inputSize = len(ut.flatten(self.observationSpace, self.observationSpace.sample()))
         self.hiddenSize = parameters["hiddenSize"]
@@ -48,12 +48,12 @@ class LAPGAgent(Agent):
         super().__init__(parameters, centralLearner, environmentInfo)
 
     def calculateGrad(self):
-        grad = 0
+        grad = None
         currentWeights = self.model.state_dict()
         for episode in self.trajectoryHistory:
             for t, (_, reward, _) in enumerate(episode):
-                stepGrad = 0
-                for (state, action), _, weights in episode[:t]:
+                stepGrad = None
+                for (state, action), _, weights in episode[:t+1]:
                     if weights is not None:
                         self.model.load_state_dict(weights)
                     flatState = ut.flatten(self.observationSpace, state).astype(np.float32)
@@ -62,10 +62,18 @@ class LAPGAgent(Agent):
                     indicator = torch.zeros([1,self.outputSize])
                     indicator[0,action] = 1
                     loss = torch.log(torch.matmul(indicator,probabilities.view([self.outputSize,1])))
-                    loss.retain_grad()
-                    loss.backward()
-                    stepGrad += loss.grad
-                grad += stepGrad*(self.gamma**t)*reward
+                    if stepGrad is None:
+                        stepGrad = torch.autograd.grad(loss, self.model.parameters())
+                    else:
+                        for p,q in zip(stepGrad,torch.autograd.grad(loss, self.model.parameters())):
+                            p.data += q.data
+                if grad is None:
+                    grad = stepGrad
+                    for p in grad:
+                        p *= (self.gamma**t)*reward
+                else:
+                    for p,q in zip(grad, stepGrad):
+                        p.data += q.data*(self.gamma**t)*reward
         self.model.load_state_dict(currentWeights)
         return grad
 
@@ -85,25 +93,20 @@ class LAPGAgent(Agent):
             self.trajectoryHistory.append(self.currentTrajectory)
         self.currentTrajectory = []
         grad = self.calculateGrad()
-        if self.weights is not None:
-            if np.linalg.norm(grad) >= ((self.eta/(self.alpha**2 * self.M**2))*np.sum([np.linalg.norm(update) for update in self.weightsUpdates]) if self.weightsUpdates else 0):
+        if self.trajectoryHistory:
+            # print(grad)
+            # print(torch.norm(parameters_to_vector(grad)), ((self.eta/(self.alpha**2 * self.M**2))*torch.sum(self.weightsUpdates) if self.weightsUpdates else 0))
+            if torch.norm(parameters_to_vector(grad)) >= ((self.eta/(self.alpha**2 * self.M**2))*sum(self.weightsUpdates) if self.weightsUpdates else 0):
                 self.sendMessage(grad)
         super().nextEpisode(state)
 
     def recieveMessage(self, message):
         if len(self.weightsUpdates) >= self.D:
             self.weightsUpdates.pop(0)
-        if self.weights is not None:
-            self.weightsUpdates.append(message-self.weights)
-        self.weights = message
-        params = OrderedDict()
-        currentParams = self.model.state_dict()
-        elNum = 0
-        for name, tensor in currentParams.items():
-            num = torch.numel(tensor)
-            params[name] = torch.from_numpy(copy(message)[elNum:num]).view(tensor.size())
-        self.lastWeights = currentParams
-        self.model.load_state_dict(params)
+        self.weightsUpdates.append(torch.norm(parameters_to_vector(message) - parameters_to_vector(self.model.parameters())))
+        self.lastWeights = self.model.state_dict()
+        for p,q in zip(message,self.model.parameters()):
+            q.data = p
 
 
     def generateNextAction(self) -> None:
