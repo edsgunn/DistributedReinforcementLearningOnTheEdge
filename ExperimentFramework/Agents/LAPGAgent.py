@@ -95,7 +95,7 @@ class LAPGAgent(Agent):
         grad = self.calculateGrad()
         if self.trajectoryHistory:
             # print(grad)
-            # print(torch.norm(parameters_to_vector(grad)), ((self.eta/(self.alpha**2 * self.M**2))*torch.sum(self.weightsUpdates) if self.weightsUpdates else 0))
+            # print(torch.norm(parameters_to_vector(grad)), ((self.eta/(self.alpha**2 * self.M**2))*sum(self.weightsUpdates) if self.weightsUpdates else 0))
             if torch.norm(parameters_to_vector(grad)) >= ((self.eta/(self.alpha**2 * self.M**2))*sum(self.weightsUpdates) if self.weightsUpdates else 0):
                 self.sendMessage(grad)
         super().nextEpisode(state)
@@ -124,6 +124,7 @@ class LAPGAgent(Agent):
             "currentState": copy(self.currentAction),
             "?message": copy(self.lastMessage)
         }
+        self.lastReward = 0
         self.lastMessage = None
         return data
 

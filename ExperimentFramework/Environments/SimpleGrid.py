@@ -16,7 +16,7 @@ class SimpleGridFeature(Feature):
         vec = np.zeros([self.featureLength,1])
         i = state[0]
         j = state[1]
-        vec[self.width*i+j,0] = -1
+        # vec[self.width*i+j,0] = -1
         if action == 0:
             i = max(0, i-1)
         elif action == 1:

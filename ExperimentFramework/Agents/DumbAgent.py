@@ -17,7 +17,10 @@ class DumbAgent(Agent):
     def __init__(self, parameters, centralLearner, environmentInfo) -> None:
         self.epsilon = parameters["epsilon"]
         self.possibleActions = environmentInfo["actionSpace"]
-        self.currentState = tuple(environmentInfo["observation"]) if environmentInfo["observation"] is not None else None
+        try:
+            self.currentState = tuple(environmentInfo["observation"]) if environmentInfo["observation"] is not None else None
+        except:
+            self.currentState = int(environmentInfo["observation"]) if environmentInfo["observation"] is not None else None
         self.obervationSpace = environmentInfo["observationSpace"]
         self.q = defaultdict(self.zerosReturn)
         super().__init__(parameters, centralLearner, environmentInfo)
@@ -27,7 +30,10 @@ class DumbAgent(Agent):
 
     def step(self, observation: State, reward: float) -> Action:
         self.lastState = copy(self.currentState)
-        self.currentState = tuple(observation)
+        try:
+            self.currentState = tuple(observation)
+        except:
+            self.currentState = int(observation)
         self.lastReward = reward
         self.generateNextAction()
         self.sendMessage((self.lastState, self.lastAction, reward, self.currentState, self.currentAction))
@@ -43,7 +49,11 @@ class DumbAgent(Agent):
         return self.currentAction
 
     def nextEpisode(self, state) -> None:
-        return super().nextEpisode(tuple(state))
+        # self.epsilon = max(0.1, self.epsilon-0.001)
+        try:
+            return super().nextEpisode(tuple(state))
+        except:
+            return super().nextEpisode(int(state))
 
     def generateNextAction(self) -> None:
         # with probability epsilon return a random action to explore the environment
@@ -54,7 +64,8 @@ class DumbAgent(Agent):
         # with probability (1 - epsilon) act greedily (exploit)
         else:
             self.currentAction = int(np.argmax(self.q[self.currentState]))
-
+            # actions = self.q[self.currentState]
+            # self.currentAction = int(np.random.choice(np.flatnonzero(actions == actions.max())))
         # actionValues = {action:self.q[(state, action)] for state, action in self.q.keys() if state == self.currentState}
         # bestAction = max(actionValues, key= lambda key: actionValues[key])
         # m = len(self.possibleActions)
@@ -72,6 +83,7 @@ class DumbAgent(Agent):
             "currentState": copy(self.currentAction),
             "?message": copy(self.lastMessage)
         }
+        self.lastReward = 0
         self.lastMessage = None
         return data
 

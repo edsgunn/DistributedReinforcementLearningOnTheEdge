@@ -35,9 +35,11 @@ class ESLearner(CentralLearner):
             self.numParams = self.inputSize*self.hiddenSize + self.inputSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.outputSize + self.outputSize
         if self.rewards:
             if self.weights is not None:
-                self.weights += self.parameters["alpha"]*(1/(self.parameters["sigma"]*len(self.agents)))*np.sum([reward*self.agentGenerators[agent].multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams)) for agent, reward in self.rewards.items()])
+                self.velocity = self.parameters["gamma"]*self.velocity + self.parameters["alpha"]*(1/(self.parameters["sigma"]*len(self.agents)))*sum([reward*self.agentGenerators[agent].multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams)) for agent, reward in self.rewards.items()])
+                self.weights += self.velocity
             else:
                 self.weights = self.rng.multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams))
+                self.velocity = np.zeros(self.weights.shape)
         self.rewards = {}
         self.broadcastMessage(self.weights)
 
@@ -48,9 +50,6 @@ class ESLearner(CentralLearner):
 
     def recieveMessage(self, agentId, message):
         self.rewards[agentId] = message
-
-    def getQ(self):
-        return self.q
     
     def logStep(self):
         data = {"?message": copy(self.lastMessage), "?weights": copy(self.weights)}

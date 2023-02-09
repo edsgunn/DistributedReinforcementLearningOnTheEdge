@@ -37,7 +37,7 @@ class DAVIALearner(CentralLearner):
         if self.updates:
             # print(self.epsilon*np.mean(self.updates, axis=0))
             self.weights -= np.transpose(self.epsilon*np.mean(self.updates, axis=0))
-            # v = "\n" + "".join("{:.2f} ".format(weight)+ ("\n" if (i+1) % 5 == 0 else "")  for i, weight in enumerate(copy(self.weights).flatten()))
+            # v = "\n" + "".join("{:.2f} ".format(weight)+ ("\n" if (i+1) % 12 == 0 else "")  for i, weight in enumerate(copy(self.weights).flatten()))
             # print(v)
             self.broadcastMessage(self.weights)
             self.lastMessage = self.weights

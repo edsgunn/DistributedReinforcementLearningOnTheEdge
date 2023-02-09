@@ -48,12 +48,31 @@ class Universe:
                     self.runTraining(self.parameters["numEpisodes"])
 
         
+    def runCrossValidation(self):
+        for algorithm, testingParameters in zip(self.algorithms, self.algorithmParameters):
+            for i, algorithmParameters in enumerate(testingParameters):
+                self.algorithm = algorithm(algorithmParameters)
+                self.logger.setAlgorithm(f"{algorithm.getName()}{i}", algorithmParameters)
+                print(f"Running algorithm: {algorithm.getName()}{i}, parameters: {algorithmParameters}                  ")
+                for numAgents in self.parameters["numbersOfAgents"]:
+                    self.logger.setNumberOfAgents(numAgents)
+                    print(f"Running {numAgents} agents                                                  ")
+                    for environment, environmentParameters in zip(self.typesOfEnvironment, self.environmentParameters):
+                        self.logger.setEnvironment(environment.getName(), environmentParameters)
+                        print(f"Running environment: {environment.getName()}                                   ")
+                        self.centralLearner = self.algorithm.makeCentralLearner()
+                        self.logger.addCentralLearner(self.centralLearner)
+                        self.environmentFactory = EnvironmentFactory(environment, environmentParameters, self.algorithm.makeContingentFactory(self.centralLearner, self.logger))
+                        self.environments = self.environmentFactory.makeEnvironments(numAgents)
+                        self.episode = 0
+                        self.runTraining(self.parameters["numEpisodes"])
 
     def runTraining(self, iterations: int):
         print("Starting training\n")
         for _ in range(iterations):
             for enviroment in self.environments:
                 enviroment.nextEpisode()
+            print("                                                                 ", end="\r")
             print (f"Episode {self.episode}/{self.parameters['numEpisodes']}", end="\r")
             self.centralLearner.nextEpisode(self.environments[0].getEnvironmentInfo())
             self.start()
@@ -78,6 +97,7 @@ class Universe:
             self.logger.logStep(self.stepNumber)
             if maxSteps := self.parameters.get("maxSteps"):
                 if self.stepNumber > maxSteps:
+                    print("                                                             ", end="\r")
                     print (f"Episode {self.episode}/{self.parameters['numEpisodes']} Episode truncated, {sum([environment.running for environment in self.environments])} agents running", end="\r")
                     break
         self.episode += 1        

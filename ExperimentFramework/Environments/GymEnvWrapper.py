@@ -10,10 +10,11 @@ class GymEnv(Environment):
         self.currentObservation = None
         self.currentReward = None
         self.running = False
+        self.episode = 0
         super().__init__(parameters, contingentFactory)
     
     def getEnvironmentInfo(self):
-        return {"actionSpace": self.environment.action_space, "observation":self.currentObservation, "observationSpace": self.environment.observation_space}
+        return {"actionSpace": self.environment.action_space, "observation":self.currentObservation, "observationSpace": self.environment.observation_space, "feature": self.feature}
 
     def getObservableState(self) -> State:
         return self.currentObservation
@@ -37,3 +38,4 @@ class GymEnv(Environment):
         self.currentObservation, _ = self.environment.reset()
         for agent in self.agents:
             agent.nextEpisode(self.currentObservation)
+        self.episode += 1

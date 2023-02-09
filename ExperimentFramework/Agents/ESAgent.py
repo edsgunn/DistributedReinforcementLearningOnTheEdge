@@ -25,6 +25,7 @@ class ESAgent(Agent):
         self.weights = None
         self.inputSize = len(ut.flatten(self.observationSpace, self.observationSpace.sample()))
         self.hiddenSize = parameters["hiddenSize"]
+        self.sigma = parameters["sigma"]
         self.outputSize = len(ut.flatten(self.possibleActions, self.possibleActions.sample()))
         self.numParams = self.inputSize*self.hiddenSize + self.inputSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.outputSize + self.outputSize
         self.model = nn.Sequential(
@@ -59,6 +60,7 @@ class ESAgent(Agent):
         super().nextEpisode(state)
         self.sendMessage(self.totalReward)
         self.totalReward = 0
+        # self.sigma = max(0.01, self.sigma - 0.001)
 
 
 
@@ -67,7 +69,7 @@ class ESAgent(Agent):
         self.lastMessage = message
 
     def recieveMessage(self, message):
-        self.weights = copy(message) + self.parameters["sigma"]*self.rgn.multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams))
+        self.weights = copy(message) + self.sigma*self.rgn.multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams))
         self.model.load_state_dict(self.arrangeParameters(self.weights))
 
     def getAction(self) -> Action:
@@ -78,6 +80,7 @@ class ESAgent(Agent):
         flatState = torch.from_numpy(flatState)
         probabilities = self.model(flatState)
         self.currentAction = int(torch.multinomial(probabilities, 1)[0])
+        # print(self.currentState, probabilities)
 
     def logStep(self):
         data = {
@@ -89,5 +92,6 @@ class ESAgent(Agent):
             "?message": copy(self.lastMessage)
         }
         self.lastMessage = None
+        self.lastReward = 0
         return data
 

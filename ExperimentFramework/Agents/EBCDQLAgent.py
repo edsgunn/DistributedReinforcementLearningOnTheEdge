@@ -21,7 +21,10 @@ class EBCDQLAgent(Agent):
         self.gamma = parameters["gamma"]
         self.rho = parameters["rho"]
         self.possibleActions = environmentInfo["actionSpace"]
-        self.currentState = tuple(environmentInfo["observation"]) if environmentInfo["observation"] is not None else None
+        try:
+            self.currentState = tuple(environmentInfo["observation"]) if environmentInfo["observation"] is not None else None
+        except:
+            self.currentState = int(environmentInfo["observation"]) if environmentInfo["observation"] is not None else None
         self.obervationSpace = environmentInfo["observationSpace"]
         self.q = defaultdict(self.zerosReturn)
         self.L = 0
@@ -32,7 +35,10 @@ class EBCDQLAgent(Agent):
 
     def step(self, observation: State, reward: float) -> Action:
         self.lastState = copy(self.currentState)
-        self.currentState = tuple(observation)
+        try:
+            self.currentState = tuple(observation)
+        except:
+            self.currentState = int(observation)
         self.lastReward = reward
         self.generateNextAction()
         tdError = reward+self.gamma*np.max(self.q[self.currentState]) - self.q[self.lastState][self.lastAction]
@@ -51,7 +57,10 @@ class EBCDQLAgent(Agent):
         return self.currentAction
 
     def nextEpisode(self, state) -> None:
-        return super().nextEpisode(tuple(state))
+        try:
+            return super().nextEpisode(tuple(state))
+        except:
+            return super().nextEpisode(int(state))
 
     def generateNextAction(self) -> None:
         # with probability epsilon return a random action to explore the environment
@@ -80,6 +89,7 @@ class EBCDQLAgent(Agent):
             "currentState": copy(self.currentAction),
             "?message": copy(self.lastMessage)
         }
+        self.lastReward = 0
         self.lastMessage = None
         return data
 

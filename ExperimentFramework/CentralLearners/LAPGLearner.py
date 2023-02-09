@@ -20,6 +20,7 @@ class LAPGLearner(CentralLearner):
         self.inputSize = None
         self.hiddenSize = parameters["hiddenSize"]
         self.alpha = parameters["alpha"]
+        self.gamma = parameters["gamma"]
         self.outputSize = None
         self.numParams = None
         self.weights = None
@@ -39,35 +40,43 @@ class LAPGLearner(CentralLearner):
         if self.updates:
             if self.weights is None:
                 self.weights = copy(self.updates[0])
+                self.velocity = copy(self.updates[0])
                 if self.lastGrad is None:
-                    updates = [self.weights]
-                    i = 1
-                else:
-                    updates = [self.weights, self.lastGrad]
+                    updates = [self.weights, self.velocity]
                     i = 2
+                else:
+                    updates = [self.weights, self.velocity, self.lastGrad]
+                    i = 3
                 updates.extend([update for update in self.updates])
                 for vars in zip(*updates):
-                    for x in vars:
-                        cumGrads = sum([p.data  for p in x[i:]])
-                        if i==1:
-                            x[0].data = self.alpha*(cumGrads)
-                        else:
-                            x[0].data = self.alpha*(x[1]+cumGrads)
+                    # for x in vars:
+                    # print(vars)
+                    # print([p.data  for p in vars[i:]])
+                    cumGrads = sum([p.data  for p in vars[i:]])
+                    # print(cumGrads)
+
+                    if i==2:
+                        vars[1].data = self.alpha*(cumGrads)
+                    else:
+                        vars[1].data = self.alpha*(vars[2]+cumGrads)
+                    vars[0].data = vars[1].data
             else:
                 if self.lastGrad is None:
-                    updates = [self.weights]
-                    i = 1
-                else:
-                    updates = [self.weights, self.lastGrad]
+                    updates = [self.weights, self.velocity]
                     i = 2
+                else:
+                    updates = [self.weights, self.velocity, self.lastGrad]
+                    i = 3
                 updates.extend([update for update in self.updates])
                 for vars in zip(*updates):
-                    for x in vars:
-                        cumGrads = sum([p.data  for p in x[i:]])
-                        if i==1:
-                            x[0].data += self.alpha*(cumGrads)
-                        else:
-                            x[0].data += self.alpha*(x[1]+cumGrads)
+                    # for x in vars:
+                    cumGrads = sum([p.data  for p in vars[i:]])
+                    if i==2:
+                        vars[1].data = self.gamma*vars[1].data + self.alpha*(cumGrads)
+                    else:
+                        vars[1].data = self.gamma*vars[1].data + self.alpha*(vars[2]+cumGrads)
+                    vars[0].data += vars[1].data
+
 
             self.broadcastMessage(self.weights)
             self.updates = []

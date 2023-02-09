@@ -53,7 +53,7 @@ class DAVIAAgent(Agent):
                 self.sendMessage(grad)
             self.experience = []
         self.k += 1
-        self.policyEpsilon = max(0.2, self.policyEpsilon - 0.001)
+        self.policyEpsilon = max(0.05, self.policyEpsilon - 0.01)
         super().nextEpisode(state)
 
     def calculateGrad(self):
@@ -62,7 +62,7 @@ class DAVIAAgent(Agent):
                 # print(lastState, lastAction, reward, currentState)
                 # print((np.matmul(self.weights,self.feature(lastState, lastAction)) - reward - self.gamma*max(self.q(currentState, action) for action in range(ut.flatdim(self.actionSpace)))))
 
-        return (1/len(self.experience))*sum(self.feature(lastState,lastAction)*(np.matmul(self.weights,self.feature(lastState, lastAction)) + reward - self.gamma*max(self.q(currentState, action) for action in range(ut.flatdim(self.actionSpace)))) for lastState, lastAction, reward, currentState, _ in self.experience) + np.transpose(self.reg*self.weights)
+        return (1/len(self.experience))*sum(self.feature(lastState,lastAction)*(np.matmul(self.weights,self.feature(lastState, lastAction)) - reward - self.gamma*max(self.q(currentState, action) for action in range(ut.flatdim(self.actionSpace)))) for lastState, lastAction, reward, currentState, _ in self.experience) + np.transpose(self.reg*self.weights)
 
     def calculateHessian(self):
         return np.eye(self.feature.len()) - self.epsilon*(1/2)*(1/len(self.experience))*sum(np.matmul(self.feature(state, action), np.transpose(self.feature(state, action))) for state, action, _, _, _ in self.experience)
@@ -98,6 +98,7 @@ class DAVIAAgent(Agent):
             "currentState": copy(self.currentAction),
             "?message": copy(self.lastMessage)
         }
+        self.lastReward = 0
         self.lastMessage = None
         return data
 
