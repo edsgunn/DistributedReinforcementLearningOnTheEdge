@@ -3,7 +3,6 @@ class CentralLearnerFactory:
 
     def __init__(self, parameters):
         self.parameters = parameters
-        self.lastMessage = None
 
     def makeCentralLearner():
         pass
@@ -12,6 +11,7 @@ class CentralLearner:
 
     def __init__(self) -> None:
         self.agents = []
+        self.lastMessage = None
 
     def step(self):
         pass

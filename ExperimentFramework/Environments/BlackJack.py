@@ -9,4 +9,5 @@ class BlackJack(GymEnv):
             self.environment = gym.make(BlackJack.name, render_mode=parameters["render_mode"])
         else:  
             self.environment = gym.make(BlackJack.name)
+        self.feature = None
         super().__init__(parameters, contingentFactory)

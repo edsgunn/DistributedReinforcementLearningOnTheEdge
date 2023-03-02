@@ -78,7 +78,7 @@ class Universe:
             self.start()
 
     def step(self) -> None:
-
+        # print(self.stepNumber)
         self.running = False
         # with mp.Pool() as pool:
         #     self.running = any(pool.map(envStep, self.environments))

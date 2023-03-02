@@ -2,6 +2,7 @@ from ExperimentFramework.Algorithm import Algorithm, ContingentFactory
 from ExperimentFramework.Agents.ESAgent import ESAgent
 from ExperimentFramework.CentralLearners.ESLearner import ESLearnerFactory
 import numpy as np
+from copy import deepcopy
 
 class ESContingentFactory(ContingentFactory):
 
@@ -38,4 +39,4 @@ class EvolutionStrategies(Algorithm):
         self.centralLearnerFactory = ESLearnerFactory(self.parameters["centralLearnerParameters"])
 
     def makeContingentFactory(self, centralLearner, logger):
-        return ESContingentFactory(self.agentTypes, self.parameters["agentParameters"], centralLearner, logger)
+        return ESContingentFactory(self.agentTypes, deepcopy(self.parameters["agentParameters"]), centralLearner, logger)

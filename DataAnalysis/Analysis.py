@@ -32,16 +32,28 @@ def getAgentEpisodeReward(data, algorithm, numAgents, environment):
     return {agent: [sum([step["reward"] for step in steps]) for steps in episode] for agent, episode in episodeData.items()}
 
 def getAlgorithmEpisodeAverageReward(data, algorithm, numAgents, environment):
-    data = getAgentEpisodeReward(data, algorithm, numAgents, environment)
-    return np.mean(np.array(list(data.values())), axis=0)
+    episodeData = getAgentEpisodeReward(data, algorithm, numAgents, environment)
+    return np.mean(np.array(list(episodeData.values())), axis=0)
+
+def getAlgorithmAverageTrialReward(data, algorithm, numAgents, environment):
+    return np.mean([getAlgorithmEpisodeAverageReward(trialData, algorithm, numAgents, environment) for trialData in data], axis=0)
+
+def getAlgorithmStdTrialReward(data, algorithm, numAgents, environment):
+    return np.mean([getAlgorithmEpisodeAverageReward(trialData, algorithm, numAgents, environment) for trialData in data], axis=0)
 
 def getAgentEpisodeNumMessages(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeData(data, algorithm, numAgents, environment)
     return {agent: [sum([step["?message"] is not None for step in steps]) for steps in episode] for agent, episode in episodeData.items()}
 
 def getAgentEpisodeAverageNumMessages(data, algorithm, numAgents, environment):
-    data = getAgentEpisodeNumMessages(data, algorithm, numAgents, environment)
-    return np.mean(np.array(list(data.values())), axis=0)
+    episodeData = getAgentEpisodeNumMessages(data, algorithm, numAgents, environment)
+    return np.mean(np.array(list(episodeData.values())), axis=0)
+
+def getAlgorithmAverageTrialMessages(data, algorithm, numAgents, environment):
+    return np.mean([getAgentEpisodeAverageNumMessages(trialData, algorithm, numAgents, environment) for trialData in data], axis=0)
+
+def getAlgorithmStdTrialMessages(data, algorithm, numAgents, environment):
+    return np.std([getAgentEpisodeAverageNumMessages(trialData, algorithm, numAgents, environment) for trialData in data], axis=0)
 
 def getAgentEpisodeAverageNumberOfMessagesPerStep(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeData(data, algorithm, numAgents, environment)
@@ -50,6 +62,18 @@ def getAgentEpisodeAverageNumberOfMessagesPerStep(data, algorithm, numAgents, en
 def getAgentEpisodeSizeMessages(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeData(data, algorithm, numAgents, environment)
     return {agent: [sum([sys.getsizeof(message) if (message := step["?message"]) is not None else 0 for step in steps]) for steps in episode] for agent, episode in episodeData.items()}
+
+def getAgentEpisodeSizeMessagesPerStep(data, algorithm, numAgents, environment):
+    episodeData = getAgentEpisodeData(data, algorithm, numAgents, environment)
+    return {agent: [np.mean([sys.getsizeof(message) if (message := step["?message"]) is not None else 0 for step in steps], axis=0) for steps in episode] for agent, episode in episodeData.items()}
+
+def getAgentEpisodeAverageSizeMessages(data, algorithm, numAgents, environment):
+    episodeData = getAgentEpisodeSizeMessages(data, algorithm, numAgents, environment)
+    return np.mean(np.array(list(episodeData.values())), axis=0)
+
+def getAgentEpisodeAverageSizeMessagesPerStep(data, algorithm, numAgents, environment):
+    episodeData = getAgentEpisodeSizeMessagesPerStep(data, algorithm, numAgents, environment)
+    return np.mean(np.array(list(episodeData.values())), axis=0)
 
 def getFinalValueFunction(data, algorithm, numAgents, environment):
     episodeData = getCLEpisodeData(data, algorithm, numAgents, environment)
@@ -79,55 +103,108 @@ def printV2D(q):
 
 def plotAgentEpisodeReward(data, algorithm, numAgents, environment):
     agentRewards = getAgentEpisodeReward(data, algorithm, numAgents, environment)
+    fig = plt.figure()
     for agent, y in agentRewards.items():
         plt.plot([x for x in range(len(y))],y, label=agent)    
     plt.xlabel('Episode number')
     plt.ylabel('Total reward')
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.show()
+    return fig
 
 def plotAlgorithmEpisodeAverageReward(data, algorithms, numAgents, environment):
     algorithmRewards = {algorithm: getAlgorithmEpisodeAverageReward(data, algorithm, numAgents, environment) for algorithm in algorithms}
+    fig = plt.figure()
     for algorithm, y in algorithmRewards.items():
         plt.plot([x for x in range(len(y))],y, label=algorithm)    
     plt.xlabel('Episode number')
     plt.ylabel('Average agent reward')
+    # plt.ylim([-1000, 10])
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.show()
+    return fig
+
+def plotAlgorithmAverageTrialReward(data, algorithms, numAgents, environment):
+    algorithmRewards = {algorithm: (getAlgorithmAverageTrialReward(data, algorithm, numAgents, environment), getAlgorithmStdTrialReward(data, algorithm, numAgents, environment)) for algorithm in algorithms}
+    fig = plt.figure()
+    for algorithm, (y, error) in algorithmRewards.items():
+        x = [i for i in range(len(y))]
+        plt.plot(x,y, label=algorithm)  
+        plt.fill_between(x, y-error, y+error, alpha=0.2)  
+    plt.xlabel('Episode number')
+    plt.ylabel('Average agent reward')
+    # plt.ylim([-1000, 10])
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    return fig
 
 def plotAgentEpisodeNumMessages(data, algorithm, numAgents, environment):
     agentMessages = getAgentEpisodeNumMessages(data, algorithm, numAgents, environment)
+    fig = plt.figure()
     for agent, y in agentMessages.items():
         plt.plot([x for x in range(len(y))],y, label=agent)    
     plt.xlabel('Episode number')
     plt.ylabel('Number of messages')
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.show()
+    return fig
 
 def plotAlgorithmEpisodeAverageNumMessages(data, algorithms, numAgents, environment):
     algorithmMessages = {algorithm: getAgentEpisodeAverageNumMessages(data, algorithm, numAgents, environment) for algorithm in algorithms}
+    fig = plt.figure()
     for algorithm, y in algorithmMessages.items():
-        plt.yscale("log")    
         plt.plot([x for x in range(len(y))],y, label=algorithm) 
     plt.xlabel('Episode number')
     plt.ylabel('Average agent number of messages')
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.show()
+    return fig
 
+def plotAlgorithmEpisodeAverageSizeMessages(data, algorithms, numAgents, environment):
+    algorithmMessages = {algorithm: getAgentEpisodeAverageSizeMessages(data, algorithm, numAgents, environment) for algorithm in algorithms}
+    fig = plt.figure()
+    for algorithm, y in algorithmMessages.items():
+        plt.plot([x for x in range(len(y))],y, label=algorithm) 
+    plt.xlabel('Episode number')
+    plt.ylabel('Average agent size of messages (bytes)')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    return fig
+
+def plotAlgorithmEpisodeAverageSizeMessagesPerStep(data, algorithms, numAgents, environment):
+    algorithmMessages = {algorithm: getAgentEpisodeAverageSizeMessagesPerStep(data, algorithm, numAgents, environment) for algorithm in algorithms}
+    fig = plt.figure()
+    for algorithm, y in algorithmMessages.items():
+        plt.plot([x for x in range(len(y))],y, label=algorithm) 
+    plt.xlabel('Episode number')
+    plt.ylabel('Average agent size of messages')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    return fig
+
+def plotAlgorithmAverageTrialMessages(data, algorithms, numAgents, environment):
+    algorithmMessages = {algorithm: (getAlgorithmAverageTrialMessages(data, algorithm, numAgents, environment), getAlgorithmStdTrialMessages(data, algorithm, numAgents, environment)) for algorithm in algorithms}
+    fig = plt.figure()
+    for algorithm, (y, error) in algorithmMessages.items():
+        x = [i for i in range(len(y))]
+        plt.plot(x,y, label=algorithm) 
+        plt.fill_between(x, y-error, y+error, alpha=0.2)  
+    plt.xlabel('Episode number')
+    plt.ylabel('Average agent number of messages')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    return fig
 
 def plotAgentEpisodeAverageNumberOfMessagesPerStep(data, algorithm, numAgents, environment):
     agentMessages = getAgentEpisodeAverageNumberOfMessagesPerStep(data, algorithm, numAgents, environment)
+    fig = plt.figure()
     for agent, y in agentMessages.items():
         plt.plot([x for x in range(len(y))],y, label=agent)    
     plt.xlabel('Episode number')
     plt.ylabel('Average Number of messages')
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.show()
+    return fig
 
 def create_grids(q, usable_ace=False):
     """Create value and policy grid given an agent."""

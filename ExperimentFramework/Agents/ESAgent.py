@@ -28,6 +28,8 @@ class ESAgent(Agent):
         self.sigma = parameters["sigma"]
         self.outputSize = len(ut.flatten(self.possibleActions, self.possibleActions.sample()))
         self.numParams = self.inputSize*self.hiddenSize + self.inputSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.outputSize + self.outputSize
+        self.mu = np.zeros(self.numParams)
+        self.cov = (parameters["sigma"]**2)*np.eye(self.numParams)
         self.model = nn.Sequential(
                         nn.Linear(self.inputSize, self.hiddenSize),
                         nn.Tanh(),
@@ -50,6 +52,7 @@ class ESAgent(Agent):
         return params
 
     def step(self, observation: State, reward: float) -> Action:
+        # print(f"Reward: {reward}")
         self.lastState = copy(self.currentState)
         self.currentState = observation
         self.lastReward = reward
@@ -59,6 +62,7 @@ class ESAgent(Agent):
     def nextEpisode(self, state) -> None:
         super().nextEpisode(state)
         self.sendMessage(self.totalReward)
+        # print(self.totalReward)
         self.totalReward = 0
         # self.sigma = max(0.01, self.sigma - 0.001)
 
@@ -69,7 +73,7 @@ class ESAgent(Agent):
         self.lastMessage = message
 
     def recieveMessage(self, message):
-        self.weights = copy(message) + self.sigma*self.rgn.multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams))
+        self.weights = copy(message) + self.sigma*self.rgn.multivariate_normal(self.mu, self.cov, method="cholesky")
         self.model.load_state_dict(self.arrangeParameters(self.weights))
 
     def getAction(self) -> Action:
@@ -79,7 +83,7 @@ class ESAgent(Agent):
         flatState = ut.flatten(self.observationSpace, self.currentState).astype(np.float32)
         flatState = torch.from_numpy(flatState)
         probabilities = self.model(flatState)
-        self.currentAction = int(torch.multinomial(probabilities, 1)[0])
+        self.currentAction = int(torch.argmax(probabilities)) #int(torch.multinomial(probabilities, 1)[0])
         # print(self.currentState, probabilities)
 
     def logStep(self):

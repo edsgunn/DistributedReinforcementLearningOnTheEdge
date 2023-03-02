@@ -49,7 +49,7 @@ class DAVIAAgent(Agent):
             # print(self.calculateHessian().shape)
             # print(grad.shape)
             # print(np.matmul(np.matmul(np.transpose(grad), self.calculateHessian()), grad) , self.lambd/(self.rho**(max(self.N-1-self.k, 0))))
-            if np.matmul(np.matmul(np.transpose(grad), self.calculateHessian()), grad) <= self.lambd/(self.rho**(max(self.N-1-self.k, 0))):
+            if np.matmul(np.matmul(np.transpose(grad), self.calculateHessian()), grad) >= self.lambd/(self.rho**(max(self.N-1-self.k, 0))):
                 self.sendMessage(grad)
             self.experience = []
         self.k += 1
