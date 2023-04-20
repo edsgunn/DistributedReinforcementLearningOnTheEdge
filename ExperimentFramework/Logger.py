@@ -1,3 +1,6 @@
+from itertools import zip_longest
+
+
 class Logger:
 
     def __init__(self, parameters):
@@ -43,6 +46,25 @@ class Logger:
             step[agentId] = agentData
         self.data["algorithms"][self.algorithm][self.numAgents][self.environment][self.episodeNum][stepNumber] = step
 
+    def logParrallel(self,data):
+        zipped_data = zip_longest(*data)
+        episode = {i:{agentId:agentData for agentId, agentData in list(filter(lambda item: item is not None, d))} for i,d in enumerate(zipped_data)}
+        self.data["algorithms"][self.algorithm][self.numAgents][self.environment][self.episodeNum] = episode
+
+# "stepNumber": {
+#     "centralLearner": {
+#         "?message": {},
+#         "?valueFunction": {}
+#     },
+#     "agentId": {
+#         "lastState": "State",
+#         "lastAction": "Action",
+#         "reward": "Number",
+#         "currentState": "State",
+#         "currentState": "Action",
+#         "?message": {}
+#     },
+# }
 class AgentLogger:
 
     def __init__(self, agent):

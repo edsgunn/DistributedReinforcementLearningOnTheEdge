@@ -35,11 +35,18 @@ def getAlgorithmEpisodeAverageReward(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeReward(data, algorithm, numAgents, environment)
     return np.mean(np.array(list(episodeData.values())), axis=0)
 
+def getAlgorithmEpisodeAverageCumulativeReward(data, algorithm, numAgents, environment):
+    return np.cumsum(getAlgorithmEpisodeAverageReward(data, algorithm, numAgents, environment))
+
 def getAlgorithmAverageTrialReward(data, algorithm, numAgents, environment):
     return np.mean([getAlgorithmEpisodeAverageReward(trialData, algorithm, numAgents, environment) for trialData in data], axis=0)
 
-def getAlgorithmStdTrialReward(data, algorithm, numAgents, environment):
-    return np.mean([getAlgorithmEpisodeAverageReward(trialData, algorithm, numAgents, environment) for trialData in data], axis=0)
+def getAlgorithmAverageCumulativeTrialReward(data, algorithm, numAgents, environment):
+    return np.cumsum(getAlgorithmAverageTrialReward(data, algorithm, numAgents, environment))
+
+def getAlgorithmPercentileTrialReward(data, algorithm, numAgents, environment):
+    d = [getAlgorithmEpisodeAverageReward(trialData, algorithm, numAgents, environment) for trialData in data]
+    return (np.percentile(d,10, axis=0), np.percentile(d,90, axis=0))
 
 def getAgentEpisodeNumMessages(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeData(data, algorithm, numAgents, environment)
@@ -49,11 +56,18 @@ def getAgentEpisodeAverageNumMessages(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeNumMessages(data, algorithm, numAgents, environment)
     return np.mean(np.array(list(episodeData.values())), axis=0)
 
+def getAgentEpisodeAverageCumulativeNumMessages(data, algorithm, numAgents, environment):
+    return np.cumsum(getAgentEpisodeAverageNumMessages(data, algorithm, numAgents, environment))
+
 def getAlgorithmAverageTrialMessages(data, algorithm, numAgents, environment):
     return np.mean([getAgentEpisodeAverageNumMessages(trialData, algorithm, numAgents, environment) for trialData in data], axis=0)
 
-def getAlgorithmStdTrialMessages(data, algorithm, numAgents, environment):
-    return np.std([getAgentEpisodeAverageNumMessages(trialData, algorithm, numAgents, environment) for trialData in data], axis=0)
+def getAlgorithmAverageCumulativeTrialMessgaes(data, algorithm, numAgents, environment):
+    return np.cumsum(getAlgorithmAverageTrialMessages(data, algorithm, numAgents, environment))
+
+def getAlgorithmPercentileTrialMessages(data, algorithm, numAgents, environment):
+    d = [getAgentEpisodeAverageNumMessages(trialData, algorithm, numAgents, environment) for trialData in data]
+    return (np.percentile(d,10, axis=0), np.percentile(d,90, axis=0))
 
 def getAgentEpisodeAverageNumberOfMessagesPerStep(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeData(data, algorithm, numAgents, environment)
@@ -62,6 +76,9 @@ def getAgentEpisodeAverageNumberOfMessagesPerStep(data, algorithm, numAgents, en
 def getAgentEpisodeSizeMessages(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeData(data, algorithm, numAgents, environment)
     return {agent: [sum([sys.getsizeof(message) if (message := step["?message"]) is not None else 0 for step in steps]) for steps in episode] for agent, episode in episodeData.items()}
+
+def getAgentEpisodeCumulativeSizeMessages(data, algorithm, numAgents, environment):
+    return np.cumsum(getAgentEpisodeSizeMessages(data, algorithm, numAgents, environment))
 
 def getAgentEpisodeSizeMessagesPerStep(data, algorithm, numAgents, environment):
     episodeData = getAgentEpisodeData(data, algorithm, numAgents, environment)
@@ -125,12 +142,12 @@ def plotAlgorithmEpisodeAverageReward(data, algorithms, numAgents, environment):
     return fig
 
 def plotAlgorithmAverageTrialReward(data, algorithms, numAgents, environment):
-    algorithmRewards = {algorithm: (getAlgorithmAverageTrialReward(data, algorithm, numAgents, environment), getAlgorithmStdTrialReward(data, algorithm, numAgents, environment)) for algorithm in algorithms}
+    algorithmRewards = {algorithm: (getAlgorithmAverageTrialReward(data, algorithm, numAgents, environment), getAlgorithmPercentileTrialReward(data, algorithm, numAgents, environment)) for algorithm in algorithms}
     fig = plt.figure()
-    for algorithm, (y, error) in algorithmRewards.items():
+    for algorithm, (y, (l,u)) in algorithmRewards.items():
         x = [i for i in range(len(y))]
         plt.plot(x,y, label=algorithm)  
-        plt.fill_between(x, y-error, y+error, alpha=0.2)  
+        plt.fill_between(x, l, u, alpha=0.2)  
     plt.xlabel('Episode number')
     plt.ylabel('Average agent reward')
     # plt.ylim([-1000, 10])
@@ -183,12 +200,12 @@ def plotAlgorithmEpisodeAverageSizeMessagesPerStep(data, algorithms, numAgents, 
     return fig
 
 def plotAlgorithmAverageTrialMessages(data, algorithms, numAgents, environment):
-    algorithmMessages = {algorithm: (getAlgorithmAverageTrialMessages(data, algorithm, numAgents, environment), getAlgorithmStdTrialMessages(data, algorithm, numAgents, environment)) for algorithm in algorithms}
+    algorithmMessages = {algorithm: (getAlgorithmAverageTrialMessages(data, algorithm, numAgents, environment), getAlgorithmPercentileTrialMessages(data, algorithm, numAgents, environment)) for algorithm in algorithms}
     fig = plt.figure()
-    for algorithm, (y, error) in algorithmMessages.items():
+    for algorithm, (y, (l,u)) in algorithmMessages.items():
         x = [i for i in range(len(y))]
         plt.plot(x,y, label=algorithm) 
-        plt.fill_between(x, y-error, y+error, alpha=0.2)  
+        plt.fill_between(x, l, u, alpha=0.2)  
     plt.xlabel('Episode number')
     plt.ylabel('Average agent number of messages')
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))

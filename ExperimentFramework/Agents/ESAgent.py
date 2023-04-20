@@ -38,7 +38,8 @@ class ESAgent(Agent):
                         nn.Linear(self.hiddenSize, self.hiddenSize),
                         nn.Tanh(),
                         nn.Linear(self.hiddenSize, self.outputSize),
-                        nn.Softmax(dim=0))
+                        nn.Tanh())
+                        # nn.Softmax(dim=0))
         self.totalReward = 0
         super().__init__(parameters, centralLearner, environmentInfo)
 
@@ -83,7 +84,7 @@ class ESAgent(Agent):
         flatState = ut.flatten(self.observationSpace, self.currentState).astype(np.float32)
         flatState = torch.from_numpy(flatState)
         probabilities = self.model(flatState)
-        self.currentAction = int(torch.argmax(probabilities)) #int(torch.multinomial(probabilities, 1)[0])
+        self.currentAction = int(torch.argmax(probabilities)) #int(torch.multinomial(probabilities, 1)[0]) probabilities.detach().numpy() #
         # print(self.currentState, probabilities)
 
     def logStep(self):

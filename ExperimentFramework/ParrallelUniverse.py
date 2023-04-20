@@ -3,11 +3,12 @@ from ExperimentFramework.Environment import Environment, EnvironmentFactory
 from ExperimentFramework.CentralLearner import CentralLearner, CentralLearnerFactory
 from ExperimentFramework.Agent import Agent
 from ExperimentFramework.Logger import Logger
+import multiprocessing as mp
 def envStep(env):
     return env.step()
 
 
-class Universe:
+class ParrallelUniverse:
 
     def __init__(self, typesOfEnvironment: List[Type[Environment]], environmentParameters, algorithms, algorithmParameters, parameters) -> None:
         self.typesOfEnvironment = typesOfEnvironment
@@ -87,18 +88,26 @@ class Universe:
         
         self.stepNumber += 1
 
+    def runEpisode(self, envLogger):
+        environment, logger = envLogger
+        running = True
+        maxSteps = self.parameters.get("maxSteps")
+        step = 0
+        steps = []
+        while running and step <= maxSteps:
+            running = environment.step()
+            steps.append(logger.logStep())
+            step += 1
+        return steps
+
     def start(self):
         self.running = True
         self.logger.setEpisode(self.episode)
         self.stepNumber: int = 0
-        while self.running:
-            self.step()
-            self.logger.logStep(self.stepNumber)
-            if maxSteps := self.parameters.get("maxSteps"):
-                if self.stepNumber > maxSteps:
-                    print("                                                             ", end="\r")
-                    print (f"Episode {self.episode}/{self.parameters['numEpisodes']} Episode truncated, {sum([environment.running for environment in self.environments])} agents running", end="\r")
-                    break
+        pool = mp.Pool()
+        data =  pool.map(self.runEpisode, zip(self.environments,self.logger.agentLoggers))
+        self.logger.logParrallel(data)
+            
         self.episode += 1        
 
         

@@ -8,7 +8,7 @@ import numpy as np
 import torch.nn as nn
 import torch
 import gymnasium.spaces.utils as ut
-
+from scipy.stats import norm, binom
 
 class ESPCAgentFactory(AgentFactory):
 
@@ -23,11 +23,12 @@ class ESPCAgent(Agent):
         self.currentState = environmentInfo["observation"]
         self.rgn = np.random.default_rng(parameters["seed"])
         self.weights = None
+        self.currentEpsilon = None
         self.inputSize = len(ut.flatten(self.observationSpace, self.observationSpace.sample()))
         self.hiddenSize = parameters["hiddenSize"]
         self.sigma = parameters["sigma"]
-        self.alpha = parameters["alpha"]
-        self.beta = parameters["beta"]
+        self.m = parameters["m"]
+        self.num_agents = parameters["num_agents"]
         self.outputSize = len(ut.flatten(self.possibleActions, self.possibleActions.sample()))
         self.numParams = self.inputSize*self.hiddenSize + self.inputSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.outputSize + self.outputSize
         self.mu = np.zeros(self.numParams)
@@ -42,8 +43,7 @@ class ESPCAgent(Agent):
                         nn.Linear(self.hiddenSize, self.outputSize),
                         nn.Softmax(dim=0))
         self.totalReward = 0
-        self.bestReward = parameters["optimalReward"]
-        self.episode = 0
+        self.mags = []
         super().__init__(parameters, centralLearner, environmentInfo)
 
     def arrangeParameters(self, vector):
@@ -65,11 +65,20 @@ class ESPCAgent(Agent):
 
     def nextEpisode(self, state) -> None:
         super().nextEpisode(state)
-        self.bestReward = max(self.bestReward, self.totalReward)
-        if random.random() < self.alpha*(self.bestreward-self.totalReward)/self.bestReward*np.exp(-self.beta*self.episode):
-            self.sendMessage(self.totalReward)
-        self.totalReward = 0
-        self.episode += 1
+        if self.weights is not None:
+            # print(self.totalReward)
+            # print(np.linalg.norm(self.currentEpsilon))
+            mag = self.totalReward/np.linalg.norm(self.currentEpsilon)
+            self.mags.append(mag)
+            mean = np.mean(self.mags[-10:])
+            sig = np.std(self.mags[-10:])
+            pNorm = norm.cdf((mag-mean)/sig)
+            p = 1-binom.cdf(self.num_agents - self.m - 1, self.num_agents, pNorm)
+            # print(self.getId(), mag, mean, sig, p, pNorm)
+            if random.random() < p:
+                self.sendMessage(self.totalReward)
+            self.totalReward = 0
+
 
 
 
@@ -78,7 +87,8 @@ class ESPCAgent(Agent):
         self.lastMessage = message
 
     def recieveMessage(self, message):
-        self.weights = copy(message) + self.sigma*self.rgn.multivariate_normal(self.mu, self.cov, method="cholesky")
+        self.currentEpsilon = self.rgn.multivariate_normal(self.mu, self.cov, method="cholesky")
+        self.weights = copy(message) + self.sigma*self.currentEpsilon
         self.model.load_state_dict(self.arrangeParameters(self.weights))
 
     def getAction(self) -> Action:
@@ -88,7 +98,7 @@ class ESPCAgent(Agent):
         flatState = ut.flatten(self.observationSpace, self.currentState).astype(np.float32)
         flatState = torch.from_numpy(flatState)
         probabilities = self.model(flatState)
-        self.currentAction = int(torch.argmax(probabilities)) #int(torch.multinomial(probabilities, 1)[0])
+        self.currentAction = int(torch.argmax(probabilities)) #int(torch.multinomial(probabilities, 1)[0]) probabilities #
         # print(self.currentState, probabilities)
 
     def logStep(self):

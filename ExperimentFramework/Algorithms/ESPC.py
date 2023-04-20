@@ -25,24 +25,18 @@ class ESPC(Algorithm):
     name = "ESPC"
     
     def __init__(self, parameters):
-        self.agentTypes = [ESAgent]
+        self.agentTypes = [ESPCAgent]
         self.parameters = parameters
         self.parameters["centralLearnerParameters"]["seed"] = self.parameters["seed"]
         self.parameters["centralLearnerParameters"]["sigma"] = self.parameters["sigma"]
         self.parameters["centralLearnerParameters"]["hiddenSize"] = self.parameters["hiddenSize"]
         self.parameters["centralLearnerParameters"]["maxSeedInt"] = self.parameters["maxSeedInt"]
-        self.parameters["centralLearnerParameters"]["optimalReward"] = self.parameters["optimalReward"]
-        self.parameters["centralLearnerParameters"]["alpha"] = self.parameters["alpha"]
-        self.parameters["centralLearnerParameters"]["beta"] = self.parameters["beta"]
         self.parameters["agentParameters"][0]["seed"] = self.parameters["seed"]
         self.parameters["agentParameters"][0]["sigma"] = self.parameters["sigma"]
         self.parameters["agentParameters"][0]["hiddenSize"] = self.parameters["hiddenSize"]
-        self.parameters["agentParameters"][0]["alpha"] = self.parameters["alpha"]
-        self.parameters["agentParameters"][0]["beta"] = self.parameters["beta"]
         self.parameters["agentParameters"][0]["maxSeedInt"] = self.parameters["maxSeedInt"]
-        self.parameters["agentParameters"][0]["optimalReward"] = self.parameters["optimalReward"]
 
-        self.centralLearnerFactory = ESLearnerFactory(self.parameters["centralLearnerParameters"])
+        self.centralLearnerFactory = ESPCLearnerFactory(self.parameters["centralLearnerParameters"])
 
     def makeContingentFactory(self, centralLearner, logger):
-        return ESContingentFactory(self.agentTypes, deepcopy(self.parameters["agentParameters"]), centralLearner, logger)
+        return ESPCContingentFactory(self.agentTypes, deepcopy(self.parameters["agentParameters"]), centralLearner, logger)

@@ -65,8 +65,8 @@ class FrozenLake(GymEnv):
         else:
             self.isSlippery = parameters["isSlippery"]
         if "render_mode" in parameters.keys():
-            self.environment = gym.make(FrozenLake.name, render_mode=parameters["render_mode"], is_slippery=self.isSlippery)
+            self.environment = gym.make(FrozenLake.name, map_name="4x4", render_mode=parameters["render_mode"], is_slippery=self.isSlippery)
         else:  
-            self.environment = gym.make(FrozenLake.name, is_slippery=self.isSlippery)
+            self.environment = gym.make(FrozenLake.name, map_name="4x4", is_slippery=self.isSlippery)
         self.feature = FrozenLakeFeature(self.isSlippery)
         super().__init__(parameters, contingentFactory)
