@@ -29,6 +29,7 @@ class ESPCAgent(Agent):
         self.sigma = parameters["sigma"]
         self.m = parameters["m"]
         self.num_agents = parameters["num_agents"]
+        self.k = parameters["k"]
         self.outputSize = len(ut.flatten(self.possibleActions, self.possibleActions.sample()))
         self.numParams = self.inputSize*self.hiddenSize + self.inputSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.outputSize + self.outputSize
         self.mu = np.zeros(self.numParams)
@@ -68,10 +69,10 @@ class ESPCAgent(Agent):
         if self.weights is not None:
             # print(self.totalReward)
             # print(np.linalg.norm(self.currentEpsilon))
-            mag = self.totalReward/np.linalg.norm(self.currentEpsilon)
+            mag = self.totalReward*np.linalg.norm(self.currentEpsilon)
             self.mags.append(mag)
-            mean = np.mean(self.mags[-10:])
-            sig = np.std(self.mags[-10:])
+            mean = np.mean(self.mags[-self.k:])
+            sig = np.std(self.mags[-self.k:])
             pNorm = norm.cdf((mag-mean)/sig)
             p = 1-binom.cdf(self.num_agents - self.m - 1, self.num_agents, pNorm)
             # print(self.getId(), mag, mean, sig, p, pNorm)
@@ -103,11 +104,11 @@ class ESPCAgent(Agent):
 
     def logStep(self):
         data = {
-            "lastState": copy(self.lastState),
-            "lastAction": copy(self.lastAction),
+            # "lastState": copy(self.lastState),
+            # "lastAction": copy(self.lastAction),
             "reward": copy(float(self.lastReward)),
-            "currentState": copy(self.currentState),
-            "currentState": copy(self.currentAction),
+            # "currentState": copy(self.currentState),
+            # "currentState": copy(self.currentAction),
             "?message": copy(self.lastMessage)
         }
         self.lastMessage = None

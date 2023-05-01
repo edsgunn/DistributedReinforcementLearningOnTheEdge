@@ -35,8 +35,7 @@ class ESLearner(CentralLearner):
             self.numParams = self.inputSize*self.hiddenSize + self.inputSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.hiddenSize + self.hiddenSize + self.hiddenSize*self.outputSize + self.outputSize
         if self.rewards:
             if self.weights is not None:
-                grad = (1/(self.parameters["sigma"]*len(self.agents)))*sum([reward*self.agentGenerators[agent].multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams)) for agent, reward in self.rewards.items()]) + 0.1 * self.weights
-                grad = grad/np.linalg.norm(grad)
+                grad = (1/(self.parameters["sigma"]*len(self.agents)))*sum([reward*self.agentGenerators[agent].multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams)) for agent, reward in self.rewards.items()]) - self.parameters["l2"] * self.weights
                 self.velocity = self.parameters["gamma"]*self.velocity + (1-self.parameters["gamma"])* grad
                 self.weights += self.parameters["alpha"]*self.velocity
             else:

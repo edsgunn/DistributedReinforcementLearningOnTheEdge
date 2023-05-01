@@ -44,8 +44,7 @@ class ESPCLearner(CentralLearner):
         else:
             vec_sum = sum([reward*self.agentGenerators[agent].multivariate_normal(np.zeros(self.numParams), np.eye(self.numParams)) for agent, reward in self.rewards.items()])
             if self.numMessages > 0:
-                grad = self.parameters["vstep"]*(1/(self.parameters["sigma"]*self.numMessages))*vec_sum
-                grad = grad/np.linalg.norm(grad)
+                grad = self.parameters["vstep"]*(1/(self.parameters["sigma"]*self.numMessages))*vec_sum - self.parameters["l2"] * self.weights
                 self.velocity = self.parameters["gamma"]*self.velocity + grad
                 self.weights += self.velocity
         self.rewards = copy(self.defualtRewards)

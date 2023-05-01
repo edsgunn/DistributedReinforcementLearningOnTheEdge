@@ -91,11 +91,11 @@ class DAVIAAgent(Agent):
 
     def logStep(self):
         data = {
-            "lastState": copy(self.lastState),
-            "lastAction": copy(self.lastAction),
+            # "lastState": copy(self.lastState),
+            # "lastAction": copy(self.lastAction),
             "reward": copy(float(self.lastReward)),
-            "currentState": copy(self.currentState),
-            "currentState": copy(self.currentAction),
+            # "currentState": copy(self.currentState),
+            # "currentState": copy(self.currentAction),
             "?message": copy(self.lastMessage)
         }
         self.lastReward = 0
